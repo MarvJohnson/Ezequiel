@@ -50,8 +50,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -131,7 +131,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
-CORS_ALLOWED_ORIGINS = ['https://ezequiel-web.herokuapp.com']
+CORS_ALLOWED_ORIGINS = ['https://ezequiel-web.herokuapp.com', 'http://localhost:8000', 'http://127.0.0.1:8000']
 CSRF_COOKIE_SECURE = os.environ['MODE'] == 'production'
 SESSION_COOKIE_SECURE = os.environ['MODE'] == 'production'
 SECURE_SSL_REDIRECT = os.environ['MODE'] == 'production'
