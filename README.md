@@ -31,7 +31,7 @@
   ![Profile Page](https://trello.com/1/cards/61fd9304b9423983227111ca/attachments/6200f1148a400e6e1e33197b/previews/6200f1158a400e6e1e331988/download/Profile_SS.JPG.jpg)
 </details>
 
-<details open>
+<details>
   <summary>Component Hierarchy Diagram</summary>
 
   ![CHD](https://trello.com/1/cards/61fd930e139a376ac6024e69/attachments/6200f3e384aba18f8a38ddc4/previews/6200f3e384aba18f8a38dde4/download/Ezequiel_CHD.drawio.png)
