@@ -127,3 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+media
+
+# General MacOS files to ignore
+ .DS_Store
+ .DocumentRevisions-V100
+ .fseventsd
+ .Spotlight-V100
+ .TemporaryItems
+ .Trashes
+ .VolumeIcon.icns
+ .com.apple.timemachine.donotpresent
