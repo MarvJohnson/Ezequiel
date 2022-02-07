@@ -21,7 +21,7 @@
 
 ### ***Getting Started***
 ##### Visit the home page [here](https://github.com/MarvJohnson/Ezequiel) and create an account!
-##### Development organization is managed with [Trello](https://trello.com/b/JyzQBSre/ezequiel)
+##### Development organization is managed with [Trello](https://trello.com/b/JyzQBSre/ezequiel), as well as Diagrams for the [ERD](https://app.diagrams.net/?libs=general;er#LEzequiel%20ERD) and [CHD](https://app.diagrams.net/#LEzequiel%20CHD)
 ***
 
 ### ***Screenshots***
