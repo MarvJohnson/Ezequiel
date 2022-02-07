@@ -20,7 +20,7 @@
 ***
 
 ### ***Getting Started***
-##### Visit the home page [here]() and create an account!
+##### Visit the home page [here](https://github.com/MarvJohnson/Ezequiel) and create an account!
 ##### Development organization is managed with [Trello](https://trello.com/b/JyzQBSre/ezequiel)
 ***
 
