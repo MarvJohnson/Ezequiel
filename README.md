@@ -21,11 +21,12 @@
 
 ### ***Getting Started***
 ##### Visit the home page [here](https://github.com/MarvJohnson/Ezequiel) and create an account!
-##### Development organization is managed with [Trello](https://trello.com/b/JyzQBSre/ezequiel), as well as Diagrams for the [ERD](https://app.diagrams.net/?libs=general;er#LEzequiel%20ERD) and [CHD](https://app.diagrams.net/#LEzequiel%20CHD)
+##### Development organization is managed with [Trello](https://trello.com/b/JyzQBSre/ezequiel), Diagrams for the [ERD](https://app.diagrams.net/?libs=general;er#LEzequiel%20ERD) and [CHD](https://app.diagrams.net/#LEzequiel%20CHD), as well as [Figma](https://www.figma.com/file/tFHXGxJwfOiKhEpyRQhxRX/Ezequiel?node-id=0%3A1) for UI mockups.
 ***
 
 ### ***Screenshots***
--coming soon-
+#### UI Mockup1
+![Profile Page](https://trello.com/1/cards/61fd9304b9423983227111ca/attachments/6200f1148a400e6e1e33197b/previews/6200f1158a400e6e1e331988/download/Profile_SS.JPG.jpg)
 ***
 
 ### ***Future Updates***
