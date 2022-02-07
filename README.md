@@ -30,6 +30,7 @@
 
 ### ***Future Updates***
 - [ ] OAuth
+- [ ] Chat
 ***
 
 ### ***Credits***
