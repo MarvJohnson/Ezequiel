@@ -16,6 +16,8 @@
 </template>
 
 <script>
+import { registerUser } from '../services/UserServices'
+
 export default {
   name: 'SignUp',
   data: () => ({
@@ -25,8 +27,12 @@ export default {
     password: ''
   }),
   methods: {
-    submitRegistration(){
-
+    async submitRegistration(){
+      const result = await registerUser(this.first_name, this.last_name, this.username, this.password)
+      
+      if (result) {
+        this.$router.push('/signin')
+      }
     }
   }
 }
