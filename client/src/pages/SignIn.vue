@@ -25,7 +25,7 @@ export default {
       const result = await requestLogin(this.username, this.password)
       
       if (result) {
-        console.log('Working!')
+        this.$router.push('/')
       }
     }
   }
