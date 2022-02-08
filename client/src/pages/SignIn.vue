@@ -25,7 +25,7 @@ export default {
       const result = await requestLogin(this.username, this.password)
       
       if (result) {
-        this.$router.push('/')
+        this.$router.push('/profile')
       }
     }
   }
