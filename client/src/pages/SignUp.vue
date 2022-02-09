@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { registerUser } from '../services/UserServices'
+import { requestRegister } from '../services/UserServices'
 
 export default {
   name: 'SignUp',
@@ -28,7 +28,7 @@ export default {
   }),
   methods: {
     async submitRegistration(){
-      const result = await registerUser(this.first_name, this.last_name, this.username, this.password)
+      const result = await requestRegister(this.first_name, this.last_name, this.username, this.password)
       
       if (result) {
         this.$router.push('/signin')
