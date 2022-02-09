@@ -152,4 +152,10 @@ REST_FRAMEWORK = {
     ),
 }
 
+DJOSER = {
+    'SERIALIZERS': {
+        'current_user': 'ezequiel.serializers.UserSerializer',
+    }
+}
+
 AUTH_USER_MODEL = 'ezequiel.User'
