@@ -1,13 +1,17 @@
 <template>
   <nav>
-    <router-link to="/" class="router-link">Home</router-link>
-    <router-link to="/usage" class="router-link">Usage</router-link>
-    <router-link to="/about" class="router-link">About</router-link>
-    <router-link to="/signin" class="router-link" v-if="!isLoggedIn()">Sign In</router-link>
-    <router-link to="/signup" class="router-link" v-if="!isLoggedIn()">Sign Up</router-link>
-    <router-link to="" v-if="isLoggedIn()" custom>
-      <a href="#" class="router-link" @click="logout">Logout</a>
-    </router-link>
+    <div class="nav-sub1">
+      <router-link to="/" class="router-link">Home</router-link>
+      <router-link to="/usage" class="router-link">Usage</router-link>
+      <router-link to="/about" class="router-link">About</router-link>
+    </div>
+    <div class="nav-sub2">
+      <router-link to="/login" class="router-link nav-btn" v-if="!isLoggedIn()">Login</router-link>
+      <router-link to="/signup" class="router-link nav-btn" v-if="!isLoggedIn()">Sign Up</router-link>
+      <router-link to="" v-if="isLoggedIn()" custom>
+        <a href="#" class="router-link" @click="logout">Logout</a>
+      </router-link>
+    </div>
   </nav>
 </template>
 
@@ -25,7 +29,7 @@ export default {
         await requestLogout();
       }      
       
-      this.$router.push('/signin')
+      this.$router.push('/login')
     }
   }
 }
@@ -33,7 +37,25 @@ export default {
 
 <style>
   nav {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 auto;
     font-size: 1.5rem;
+  }
+
+  .nav-btn {
+    background-color: var(--surface1);
+    border-radius: 1em;
+    padding: 0.2em;
+  }
+
+  .nav-sub1, .nav-sub2 {
+    gap: 0.8em;
+    align-items: center;
+  }
+
+  .nav-sub1, .nav-sub2 {
+    display: flex;
   }
 
   .router-link {

@@ -24,7 +24,7 @@ export default {
       if (result) {
         console.log('Working', result)
       } else {
-        this.$router.push('/signin')
+        this.$router.push('/login')
       }
     }
   }

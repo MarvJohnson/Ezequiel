@@ -31,7 +31,7 @@ export default {
       const result = await requestRegister(this.first_name, this.last_name, this.username, this.password)
       
       if (result) {
-        this.$router.push('/signin')
+        this.$router.push('/login')
       }
     }
   }
