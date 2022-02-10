@@ -65,7 +65,7 @@ export default {
   }
 
   section {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
   }
 
@@ -73,7 +73,15 @@ export default {
     margin-top: 5rem;
   }
 
+  section h2 {
+    font-size: 2rem;
+    background-color: var(--surface4);
+    padding: 0.2rem;
+  }
+
   section p {
     text-align: justify;
+    font-size: 1.5rem;
+    line-height: 2rem;
   }
 </style>
