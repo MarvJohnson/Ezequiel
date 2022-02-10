@@ -1,34 +1,21 @@
 <template>
   <div>
-    <h1>SignUp</h1>
-    <form @submit.prevent="submitRegistration" class="form signup-form">
-      <!-- <label for="first-name">First Name</label> -->
-      <input id="first-name" type="text" placeholder="First name" v-model="first_name">
-      <!-- <label for="last-name">Last Name</label> -->
-      <input id="last-name" type="text" placeholder="Last name" v-model="last_name">
-      <!-- <label for="username">Username</label> -->
-      <input id="username" type="text" placeholder="username" v-model="username">
-      <!-- <label for="password">Password</label> -->
-      <input id="password" type="password" placeholder="password" v-model="password">
-      <button type="submit">Submit</button>
-    </form>
+    <SignUpForm :submitRegistration="submitRegistration" />
   </div>
 </template>
 
 <script>
 import { requestRegister } from '../services/UserServices'
+import SignUpForm from '../components/SignUpForm'
 
 export default {
   name: 'SignUp',
-  data: () => ({
-    first_name: '',
-    last_name: '',
-    username: '',
-    password: ''
-  }),
+  components: {
+    SignUpForm
+  },
   methods: {
-    async submitRegistration(){
-      const result = await requestRegister(this.first_name, this.last_name, this.username, this.password)
+    async submitRegistration(first_name, last_name, username, password){
+      const result = await requestRegister(first_name, last_name, username, password)
       
       if (result) {
         this.$router.push('/login')
