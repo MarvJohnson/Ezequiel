@@ -19,10 +19,9 @@ class DirectMessageSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
   username = serializers.CharField(max_length=200)
-  email = serializers.EmailField()
   id = serializers.IntegerField(label='ID', read_only=True)
   direct_messages = DirectMessageSerializer(many=True, read_only=True)
   
   class Meta:
     model = User
-    fields = ('id', 'username', 'email', 'direct_messages',)
+    fields = ('id', 'username', 'direct_messages',)
