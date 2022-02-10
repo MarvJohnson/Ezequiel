@@ -14,7 +14,7 @@ export const requestRegister = async (
     re_password: password
   });
 
-  return result.status === 200;
+  return result.data;
 };
 
 export const requestLogin = async (username, password) => {

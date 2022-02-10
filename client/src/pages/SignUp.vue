@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="signup-page">
     <SignUpForm :submitRegistration="submitRegistration" />
   </div>
 </template>
@@ -15,10 +15,10 @@ export default {
   },
   methods: {
     async submitRegistration(first_name, last_name, username, password){
-      const result = await requestRegister(first_name, last_name, username, password)
+      const result = await requestRegister(first_name, last_name, username, password);
       
       if (result) {
-        this.$router.push('/login')
+        this.$router.push('/login');
       }
     }
   }
@@ -26,5 +26,9 @@ export default {
 </script>
 
 <style>
-
+  .signup-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 </style>
