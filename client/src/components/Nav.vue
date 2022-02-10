@@ -42,6 +42,8 @@ export default {
     flex-wrap: wrap;
     row-gap: 1rem;
     font-size: 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
   }
 
   .nav-btn {
@@ -70,7 +72,7 @@ export default {
     text-underline-offset: 0.2em;
   }
 
-  @media screen and (max-width: 501px) {
+  @media screen and (max-width: 533px) {
     nav {
       justify-content: center;
     }

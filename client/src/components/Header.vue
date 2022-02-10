@@ -17,9 +17,8 @@ export default {
 
 <style>
   header {
-    max-width: 600px;
     margin: 0 auto;
-    padding: 0 1rem;
-    padding-top: 3rem;
+    padding: 2rem;
+    background-color: var(--surface4);
   }
 </style>
