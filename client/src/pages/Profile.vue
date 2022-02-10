@@ -12,10 +12,34 @@
           <input type="text" placeholder="Send a message to everyone...">
         </section>
         <section class="room-container">
-
+          <div class="r-c-input-container">
+            <input type="text" placeholder="Search for room...">
+            <button>+</button>
+          </div>
+          <div class="room-list">
+            <div v-for="(room, rIndex) in rooms" :key="rIndex">
+              <div :class="`room-display ${room.expanded ? 'expanded' : ''}`" @click="toggleRoomExpanded(rIndex)">
+                <p><span>➤</span> Room{{ rIndex + 1 }}({{ room.occupants }}) {{ room.private ? '⛊' : '' }}</p>
+                <button class="join-btn" @click.stop="">join</button>
+              </div>
+              <div :class="`room-occupant ${room.expanded ? 'expanded' : ''}`">
+                <div v-for="(occupant, oIndex) in room.occupants" :key="oIndex" class="room-occupant-display">
+                  <p>Occupant#{{ oIndex }}</p>
+                  <button class="join-btn">chat</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
         <section class="friends-container">
-
+          <h3>Friends</h3>
+          <hr />
+          <div class="friends-list">
+            <div v-for="(n, index) in 10" :key="index" class="friend-display">
+              <p>Friend#{{ index }}</p>
+              <button class="join-btn">chat</button>
+            </div>
+          </div>
         </section>
       </aside>
       <main>
@@ -33,6 +57,9 @@ import { requestUser } from '../services/UserServices'
 
 export default {
   name: 'Profile',
+  data: () => ({
+    rooms: [...Array(20)].map(() => ({ expanded: false, occupants: 1 + Math.floor(Math.random() * 9), private: Boolean(Math.round(Math.random())) }))
+  }),
   components: {
     Header,
     Footer
@@ -49,6 +76,9 @@ export default {
       } else {
         this.$router.push('/login')
       }
+    },
+    toggleRoomExpanded(roomIndex){
+      this.rooms[roomIndex].expanded = !this.rooms[roomIndex].expanded;
     }
   }
 }
@@ -66,6 +96,7 @@ export default {
     grid-template-rows: 200px 1fr 1fr;
     background-color: var(--surface1);
     border-right: 1px solid var(--surface4);
+    overflow-y: auto;
   }
 
   .global-chat-display {
@@ -92,5 +123,84 @@ export default {
     background-color: var(--surface4);
     outline: none;
     box-shadow: inset 0 0 1px 0 hsl(var(--surface-shadow))
+  }
+
+  .r-c-input-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .r-c-input-container input {
+    height: 2rem;
+  }
+
+  .r-c-input-container button {
+    width: 3rem;
+  }
+
+  .room-container {
+    align-self: center;
+  }
+
+  .room-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem;
+    background-color: var(--surface4);
+    cursor: pointer;
+  }
+
+  .room-display span {
+    display: inline-block;
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+
+  }
+
+  .room-display.expanded span {
+    transform: rotateZ(90deg);
+  }
+
+  .room-occupant {
+    padding: 0 1rem;
+    transition: height 0.5s;
+    height: 0;
+    overflow: hidden;
+    overflow-y: auto;
+  }
+
+  .room-occupant.expanded {
+    height: 200px;
+  }
+
+  .room-occupant-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .friends-container h3 {
+    text-align: center;
+  }
+
+  .friends-container hr {
+    width: 60%;
+  }
+
+  .friend-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem;
+  }
+
+  .join-btn {
+    background-color: var(--surface2);
+    border: none;
+    padding: 0.2rem 1rem;
+    border-radius: 20px;
   }
 </style>
