@@ -13,21 +13,31 @@
         <img src="https://images.unsplash.com/photo-1631427962232-803d4f30c64f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="" />
       </div>
     </div>
+    <main>
+
+    </main>
+    <Footer />
   </div>
 </template>
 
 <script>
 import Header from '../components/Header'
+import Footer from '../components/Footer'
 
 export default {
   name: 'Home',
   components: {
-    Header
+    Header,
+    Footer
   }
 }
 </script>
 
-<style>
+<style scoped>
+  main {
+    height: 200vh;
+  }
+
   .home-page {
     font-size: 1rem;
   }
