@@ -43,7 +43,14 @@
         </section>
       </aside>
       <main>
-
+        <video id="local-client-video" autoplay playsinline></video>
+        <video id="other-client-video" autoplay playsinline></video>
+        <div class="communication-buttons">
+          <button>Start call</button>
+          <button>End call</button>
+          <button>Toggle audio</button>
+          <button>Toggle video</button>
+        </div>
       </main>
     </div>
     <Footer />
@@ -89,6 +96,10 @@ export default {
     display: grid;
     grid-template-columns: 300px 1fr;
     height: 100vh;
+  }
+
+  main {
+    position: relative;
   }
 
   aside {
@@ -202,5 +213,33 @@ export default {
     border: none;
     padding: 0.2rem 1rem;
     border-radius: 20px;
+  }
+
+  #local-client-video {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    width: 200px;
+    height: 200px;
+    background-color: var(--surface1);
+  }
+
+  #other-client-video {
+    width: 100%;
+    height: 100%;
+  }
+
+  .communication-buttons {
+    position: absolute;
+    width: 50%;
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .communication-buttons > button + button {
+    margin-left: 1rem;
   }
 </style>
