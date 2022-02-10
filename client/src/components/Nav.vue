@@ -4,12 +4,13 @@
       <router-link to="/" class="router-link">Home</router-link>
       <router-link to="/usage" class="router-link">Usage</router-link>
       <router-link to="/about" class="router-link">About</router-link>
+      <router-link to="/profile" class="router-link" v-if="isLoggedIn()">Profile</router-link>
     </div>
     <div class="nav-sub2">
       <router-link to="/login" class="router-link nav-btn" v-if="!isLoggedIn()">Login</router-link>
       <router-link to="/signup" class="router-link nav-btn" v-if="!isLoggedIn()">Sign Up</router-link>
       <router-link to="" v-if="isLoggedIn()" custom>
-        <a href="#" class="router-link" @click="logout">Logout</a>
+        <a href="#" class="router-link nav-btn" @click="logout">Logout</a>
       </router-link>
     </div>
   </nav>
@@ -44,12 +45,6 @@ export default {
     font-size: 1.5rem;
     max-width: 600px;
     margin: 0 auto;
-  }
-
-  .nav-btn {
-    background-color: var(--surface1);
-    border-radius: 1em;
-    padding: 0.1em 1em;
   }
 
   .nav-sub1, .nav-sub2 {
