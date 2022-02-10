@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>SignUp</h1>
-    <form @submit.prevent="submitRegistration" class="sign-form">
+    <form @submit.prevent="submitRegistration" class="form signup-form">
       <!-- <label for="first-name">First Name</label> -->
       <input id="first-name" type="text" placeholder="First name" v-model="first_name">
       <!-- <label for="last-name">Last Name</label> -->
