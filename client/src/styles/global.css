@@ -1,0 +1,91 @@
+* {
+  --brand-hue: 198;
+  --brand-saturation: 72%;
+  --brand-lightness: 30%;
+}
+
+* {
+  --brand-light: hsl(
+    var(--brand-hue),
+    var(--brand-saturation),
+    var(--brand-lightness)
+  );
+
+  --text1-light: hsl(var(--brand-hue), var(--brand-saturation), 10%);
+  --text2-light: hsl(var(--brand-hue), 30%, 30%);
+  --surface1-light: hsl(var(--brand-hue), 25%, 90%);
+  --surface2-light: hsl(var(--brand-hue), 20%, 99%);
+  --surface3-light: hsl(var(--brand-hue), 20%, 92%);
+  --surface4-light: hsl(var(--brand-hue), 20%, 75%);
+  --surface-shadow1-light: var(--brand-hue) 10% 20%;
+  --surface-shadow2-light: var(--brand-hue) 10% 80%;
+  --shadow-strength-light: 0.02;
+}
+
+* {
+  --brand-dark: hsl(
+    var(--brand-hue),
+    calc(var(--brand-saturation) / 2),
+    calc(var(--brand-lightness) / 1.5)
+  );
+
+  --text1-dark: hsl(var(--brand-hue), 15%, 85%);
+  --text2-dark: hsl(var(--brand-hue), 5%, 65%);
+  --surface1-dark: hsl(var(--brand-hue), 10%, 10%);
+  --surface2-dark: hsl(var(--brand-hue), 10%, 15%);
+  --surface3-dark: hsl(var(--brand-hue), 5%, 20%);
+  --surface4-dark: hsl(var(--brand-hue), 5%, 25%);
+  --surface-shadow-dark: var(--brand-hue) 50% 3%;
+  --shadow-strength-dark: 0.8;
+}
+
+:root {
+  color-scheme: light;
+  --brand: var(--brand-light);
+  --text1: var(--text1-light);
+  --text2: var(--text2-light);
+  --surface1: var(--surface1-light);
+  --surface2: var(--surface2-light);
+  --surface3: var(--surface3-light);
+  --surface4: var(--surface4-light);
+  --surface-shadow1: var(--surface-shadow1-light);
+  --surface-shadow2: var(--surface-shadow2-light);
+  --shadow-strength: var(--shadow-strength-light);
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.nav-btn {
+  background-color: var(--surface1);
+  border-radius: 1em;
+  padding: 0.1em 1em;
+}
+
+button {
+  cursor: pointer;
+}
+
+form {
+  box-shadow: 2px 2px 5px 0 hsl(var(--surface-shadow2));
+  padding: 0.5rem;
+}
+
+form input {
+  border: none;
+  background-color: var(--surface1);
+  outline-color: var(--surface4);
+  padding-left: 0.5rem;
+  color: var(--text1);
+}
+
+form p {
+  margin: 0;
+}
+
+form button[type='submit'] {
+  border: none;
+  background-color: var(--surface4);
+}
