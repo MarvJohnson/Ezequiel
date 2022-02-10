@@ -39,14 +39,15 @@ export default {
   nav {
     display: flex;
     justify-content: space-between;
-    margin: 0 auto;
+    flex-wrap: wrap;
+    row-gap: 1rem;
     font-size: 1.5rem;
   }
 
   .nav-btn {
     background-color: var(--surface1);
     border-radius: 1em;
-    padding: 0.2em;
+    padding: 0.1em 1em;
   }
 
   .nav-sub1, .nav-sub2 {
@@ -67,5 +68,11 @@ export default {
     color: var(--text2);
     text-decoration: underline;
     text-underline-offset: 0.2em;
+  }
+
+  @media screen and (max-width: 501px) {
+    nav {
+      justify-content: center;
+    }
   }
 </style>

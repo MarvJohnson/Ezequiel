@@ -1,7 +1,7 @@
 <template>
-  <div class="main-header">
+  <header>
     <Nav />
-  </div>
+  </header>
 </template>
 
 <script>
@@ -16,5 +16,10 @@ export default {
 </script>
 
 <style>
-
+  header {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    padding-top: 3rem;
+  }
 </style>
