@@ -43,13 +43,14 @@
         </section>
       </aside>
       <main>
-        <video id="local-client-video" autoplay playsinline></video>
-        <video id="other-client-video" autoplay playsinline></video>
+        <video id="remote-client-video" ref="remoteClientVideo" autoplay playsinline></video>
+        <video id="local-client-video" ref="localClientVideo" autoplay playsinline></video>
         <div class="communication-buttons">
           <button @click="establishWebSocketConnection">Start call</button>
           <button>End call</button>
-          <button>Toggle audio</button>
-          <button>Toggle video</button>
+          <button @click="toggleAudio">Toggle audio</button>
+          <button @click="toggleVideo">Toggle video</button>
+          <input type="text" v-model="username">
         </div>
       </main>
     </div>
@@ -65,7 +66,16 @@ import { requestUser } from '../services/UserServices'
 export default {
   name: 'Profile',
   data: () => ({
-    rooms: [...Array(20)].map(() => ({ expanded: false, occupants: 1 + Math.floor(Math.random() * 9), private: Boolean(Math.round(Math.random())) }))
+    rooms: [...Array(20)].map(() => ({ expanded: false, occupants: 1 + Math.floor(Math.random() * 9), private: Boolean(Math.round(Math.random())) })),
+    localStream: {},
+    remoteStream: {},
+    mapPeers: {},
+    audioTracks: [],
+    videoTracks: [],
+    remoteAudioTracks: [],
+    remoteVideoTracks: [],
+    webSocket: {},
+    username: ''
   }),
   components: {
     Header,
@@ -97,30 +107,203 @@ export default {
 
       const endpoint = `${wsStart}${loc.host}${loc.pathname}`;
       
-      let webSocket = new WebSocket(endpoint);
+      this.webSocket = new WebSocket(endpoint);
 
-      webSocket.addEventListener('open', () => {
+      this.webSocket.addEventListener('open', async () => {
         console.log('Connection opened!');
 
-        const jsonStr = JSON.stringify({
-          'message': 'Person joined the chat!'
-        });
+        const constraints = {
+          'video': true,
+          'audio': true
+        }
 
-        webSocket.send(jsonStr);
+        this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        this.audioTracks = this.localStream.getAudioTracks();
+        this.videoTracks = this.localStream.getVideoTracks();
+
+        this.sendSignal('new-peer', {});
+
+        this.audioTracks[0].enabled = true;
+        this.videoTracks[0].enabled = true;
+        
+        this.$refs.localClientVideo.srcObject = this.localStream;
+        this.$refs.localClientVideo.muted = true;
       });
-      webSocket.addEventListener('message', this.webSocketOnMessage);
-      webSocket.addEventListener('close', () => {
+      this.webSocket.addEventListener('message', this.webSocketOnMessage);
+      this.webSocket.addEventListener('close', () => {
         console.log('Connection closed!');
       });
-      webSocket.addEventListener('error', () => {
+      this.webSocket.addEventListener('error', () => {
         console.log('Error occurred!');
       });
     },
     webSocketOnMessage(event){
-      const parsed = JSON.parse(event.data);
-      const message = parsed.message;
+      const parsedData = JSON.parse(event.data);
+      const peerUsername = parsedData['peer'];
+      const action = parsedData['action'];
+      console.log(parsedData);
 
-      console.log('message:', message);
+      if (this.username === peerUsername) {
+        return;
+      }
+
+      const receiver_channel_name = parsedData['message']['receiver_channel_name']
+
+      if (action === 'new-peer') {
+        this.createOfferer(peerUsername, receiver_channel_name);
+        return;
+      }
+
+      if (action === 'new-offer') {
+        const offer = parsedData['message']['sdp'];
+
+        this.createAnswerer(offer, peerUsername, receiver_channel_name);
+        
+        return;
+      }
+
+      if (action === 'new-answer') {
+        const answer = parsedData['message']['sdp'];
+
+        const peer = this.mapPeers[peerUsername][0];
+
+        peer.setRemoteDescription(answer);
+
+        return;
+      }
+    },
+    sendSignal(action, message){
+      const jsonStr = JSON.stringify({
+        'peer': this.username,
+        'action': action,
+        'message': message
+      });
+
+      this.webSocket.send(jsonStr);
+    },
+    async createOfferer(peerUsername, receiver_channel_name){
+      const peer = new RTCPeerConnection(null);
+
+      this.addLocalTracks(peer);
+
+      const dc = peer.createDataChannel('channel');
+      dc.addEventListener('open', () => {
+        console.log('Connection opened!');
+      });
+      dc.addEventListener('message', this.dcOnMessage);
+
+      
+      this.setOnTrack(peer);
+      this.mapPeers[peerUsername] = [peer, dc];
+      peer.addEventListener('iceconnectionstatechange', () => {
+        const iceConnectionState = peer.iceConnectionState;
+
+        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
+          console.log('Failed!');
+          delete this.mapPeers[peerUsername]
+
+          if(iceConnectionState !== 'closed') {
+            peer.close();
+          }
+        }
+      });
+
+      peer.addEventListener('icecandidate', (event) => {
+        if (event.candidate) {
+          // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
+          return;
+        }
+
+        this.sendSignal('new-offer', {
+          'sdp': peer.localDescription,
+          'receiver_channel_name': receiver_channel_name
+        });
+      })
+
+      const offer = await peer.createOffer();
+      peer.setLocalDescription(offer);
+      
+      if (offer) {
+        console.log('Local description set successfully.');
+      }
+    },
+    addLocalTracks(peer){
+      this.localStream.getTracks().forEach(track => {
+        peer.addTrack(track, this.localStream)
+      })
+    },
+    dcOnMessage(event){
+      const message = event.data;
+      console.log(message);
+    },
+    setOnTrack(peer){
+      this.remoteStream = new MediaStream();
+      this.remoteAudioTracks = this.remoteStream.getAudioTracks();
+      this.remoteVideoTracks = this.remoteStream.getVideoTracks();
+
+      this.$refs.remoteClientVideo.srcObject = this.remoteStream;
+
+      peer.addEventListener('track', async (event) => {
+        this.remoteStream.addTrack(event.track, this.remoteStream);
+      });
+    },
+    async createAnswerer(offer, peerUsername, receiver_channel_name) {
+      console.log('Working!')
+      const peer = new RTCPeerConnection(null);
+
+      this.addLocalTracks(peer);
+
+      this.setOnTrack(peer);
+
+      peer.addEventListener('datachannel', e => {
+        peer.dc = e.channel;
+
+        peer.dc.addEventListener('open', () => {
+          console.log('Connection opened!');
+        });
+        peer.dc.addEventListener('message', this.dcOnMessage);
+
+        this.mapPeers[peerUsername] = [peer, peer.dc];
+      });
+
+
+      peer.addEventListener('iceconnectionstatechange', () => {
+        const iceConnectionState = peer.iceConnectionState;
+
+        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
+          delete this.mapPeers[peerUsername]
+
+          if(iceConnectionState !== 'closed') {
+            peer.close();
+          }
+        }
+      });
+
+      peer.addEventListener('icecandidate', (event) => {
+        if (event.candidate) {
+          // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
+          return;
+        }
+
+        this.sendSignal('new-answer', {
+          'sdp': peer.localDescription,
+          'receiver_channel_name': receiver_channel_name
+        });
+      })
+
+      await peer.setRemoteDescription(offer);
+      console.log('Remote description set successfully for %s.', peerUsername);
+      const answer = await peer.createAnswer();
+      peer.setLocalDescription(answer);
+    },
+    toggleAudio(){
+      console.log(this.audioTracks)
+      this.audioTracks[0].enabled = !this.audioTracks[0].enabled;
+      // this.remoteAudioTracks?.[0]?.enabled = !this.remoteAudioTracks?.[0]?.enabled;
+    },
+    toggleVideo(){
+      this.videoTracks[0].enabled = !this.videoTracks[0].enabled;
+      // this.remoteVideoTracks?.[0]?.enabled = !this.remoteVideoTracks?.[0]?.enabled;
     }
   }
 }
@@ -256,12 +439,14 @@ export default {
     left: 2rem;
     width: 200px;
     height: 200px;
+    transform: scaleX(-1);
     background-color: var(--surface1);
   }
 
-  #other-client-video {
+  #remote-client-video {
     width: 100%;
     height: 100%;
+    transform: scaleX(-1);
   }
 
   .communication-buttons {
