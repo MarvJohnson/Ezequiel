@@ -50,8 +50,6 @@
           <button>End call</button>
           <button @click="toggleAudio">Toggle audio</button>
           <button @click="toggleVideo">Toggle video</button>
-          <input type="text" v-model="username" >
-          <button @click="test">Testing</button>
         </div>
       </main>
     </div>
@@ -75,7 +73,7 @@ export default {
     videoTracks: [],
     remoteAudioTracks: [],
     remoteVideoTracks: [],
-    webSocket: {},
+    webSocket: null,
     username: '',
     globalMessages: [],
     message: ''
@@ -92,7 +90,8 @@ export default {
       const result = await requestUser();
 
       if (result) {
-        console.log('Working', result)
+        this.username = result.username;
+        this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
       }
@@ -101,6 +100,8 @@ export default {
       this.rooms[roomIndex].expanded = !this.rooms[roomIndex].expanded;
     },
     establishWebSocketConnection(){
+      if (this.webSocket) return;
+      
       let wsStart = 'ws://';
       const loc = window.location;
 
