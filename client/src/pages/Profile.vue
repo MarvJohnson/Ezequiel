@@ -5,11 +5,11 @@
       <aside>
         <section class="global-chat-container">
           <div class="global-chat-display">
-            <p>User#1: I like cereal!</p>
-            <p>User#2: Anyone home?</p>
-            <p>User#3: Does this thing work?</p>
+            <p v-for="(message, index) in globalMessages" :key="index"><span>{{ message.user }}</span>: {{ message.text }}</p>
           </div>
-          <input type="text" placeholder="Send a message to everyone...">
+          <form @submit.prevent="sendGlobalMessage()" class="global-input-form">
+            <input type="text" placeholder="Send a message to everyone..." v-model="message">
+          </form>
         </section>
         <section class="room-container">
           <div class="r-c-input-container">
@@ -50,7 +50,8 @@
           <button>End call</button>
           <button @click="toggleAudio">Toggle audio</button>
           <button @click="toggleVideo">Toggle video</button>
-          <input type="text" v-model="username">
+          <input type="text" v-model="username" >
+          <button @click="test">Testing</button>
         </div>
       </main>
     </div>
@@ -75,7 +76,9 @@ export default {
     remoteAudioTracks: [],
     remoteVideoTracks: [],
     webSocket: {},
-    username: ''
+    username: '',
+    globalMessages: [],
+    message: ''
   }),
   components: {
     Header,
@@ -112,22 +115,22 @@ export default {
       this.webSocket.addEventListener('open', async () => {
         console.log('Connection opened!');
 
-        const constraints = {
-          'video': true,
-          'audio': true
-        }
+        // const constraints = {
+        //   'video': true,
+        //   'audio': true
+        // }
 
-        this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        this.audioTracks = this.localStream.getAudioTracks();
-        this.videoTracks = this.localStream.getVideoTracks();
+        // this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        // this.audioTracks = this.localStream.getAudioTracks();
+        // this.videoTracks = this.localStream.getVideoTracks();
 
-        this.sendSignal('new-peer', {});
+        // this.sendSignal('new-peer', {});
 
-        this.audioTracks[0].enabled = true;
-        this.videoTracks[0].enabled = true;
+        // this.audioTracks[0].enabled = true;
+        // this.videoTracks[0].enabled = true;
         
-        this.$refs.localClientVideo.srcObject = this.localStream;
-        this.$refs.localClientVideo.muted = true;
+        // this.$refs.localClientVideo.srcObject = this.localStream;
+        // this.$refs.localClientVideo.muted = true;
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
@@ -170,6 +173,11 @@ export default {
         peer.setRemoteDescription(answer);
 
         return;
+      }
+
+      if (action === 'message') {
+        const message = parsedData['message']['message'];
+        this.globalMessages.push({ user: parsedData['peer'], text: message });
       }
     },
     sendSignal(action, message){
@@ -304,6 +312,13 @@ export default {
     toggleVideo(){
       this.videoTracks[0].enabled = !this.videoTracks[0].enabled;
       // this.remoteVideoTracks?.[0]?.enabled = !this.remoteVideoTracks?.[0]?.enabled;
+    },
+    sendGlobalMessage(){
+      this.sendSignal('message', {
+        'message': this.message
+      });
+      this.globalMessages.push({ user: this.username, text: this.message });
+      this.message = '';
     }
   }
 }
@@ -351,7 +366,9 @@ export default {
     border: none;
     background-color: var(--surface4);
     outline: none;
-    box-shadow: inset 0 0 1px 0 hsl(var(--surface-shadow))
+    box-shadow: inset 0 0 1px 0 hsl(var(--surface-shadow));
+    width: 100%;
+    height: 100%;
   }
 
   .r-c-input-container {
