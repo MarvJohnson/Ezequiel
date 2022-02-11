@@ -62,6 +62,35 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { requestUser } from '../services/UserServices'
 
+let wsStart = 'ws://';
+const loc = window.location;
+
+if (loc.protocol === 'https:') {
+  wsStart = 'wss://';
+}
+
+const endpoint = `${wsStart}${loc.host}${loc.pathname}`;
+
+const webSocketOnMessage = (event) => {
+  const parsedData = JSON.parse(event.data);
+  const message = parsedData.message;
+
+  console.log('message:', message);
+}
+
+let webSocket = new WebSocket(endpoint);
+
+webSocket.addEventListener('open', (e) => {
+  console.log('Connection opened!');
+});
+webSocket.addEventListener('message', webSocketOnMessage);
+webSocket.addEventListener('close', (e) => {
+  console.log('Connection closed!');
+});
+webSocket.addEventListener('error', (e) => {
+  console.log('Error occurred!');
+});
+
 export default {
   name: 'Profile',
   data: () => ({
