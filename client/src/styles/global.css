@@ -68,7 +68,7 @@ button {
   cursor: pointer;
 }
 
-form {
+.user-form {
   box-shadow: 2px 2px 5px 0 hsl(var(--surface-shadow2));
   padding: 0.5rem;
 }

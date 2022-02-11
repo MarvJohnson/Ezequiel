@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="submitRegistration(first_name, last_name, username, password)" class="signup-form">
+  <form @submit.prevent="submitRegistration(first_name, last_name, username, password)" class="user-form signup-form">
       <h2>Create an account</h2>
       <!-- <label for="first-name">First Name</label> -->
       <input id="first-name" type="text" placeholder="First name" v-model="first_name">

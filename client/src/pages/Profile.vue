@@ -5,7 +5,7 @@
       <aside>
         <section class="global-chat-container">
           <div class="global-chat-display">
-            <p v-for="(message, index) in globalMessages" :key="index"><span>{{ message.user }}</span>: {{ message.text }}</p>
+            <p v-for="(message, index) in globalMessages" :key="index" class="global-chat-message"><span>{{ message.user }}</span>: {{ message.text }}</p>
           </div>
           <form @submit.prevent="sendGlobalMessage()" class="global-input-form">
             <input type="text" placeholder="Send a message to everyone..." v-model="message">
@@ -369,6 +369,7 @@ export default {
     box-shadow: inset 0 0 1px 0 hsl(var(--surface-shadow));
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
   }
 
   .r-c-input-container {
@@ -478,5 +479,19 @@ export default {
 
   .communication-buttons > button + button {
     margin-left: 1rem;
+  }
+
+  @keyframes chat-message-popup {
+    from {
+      background-color: var(--surface4);
+    }
+
+    to {
+      background-color: transparent;
+    }
+  }
+
+  .global-chat-message {
+    animation: chat-message-popup .3s linear forwards;
   }
 </style>
