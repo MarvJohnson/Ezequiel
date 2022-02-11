@@ -71,10 +71,10 @@ export default {
     mapPeers: {},
     audioTracks: [],
     videoTracks: [],
+    webSocket: null,
+    peer: null,
     remoteAudioTracks: [],
     remoteVideoTracks: [],
-    webSocket: null,
-    username: '',
     globalMessages: [],
     message: ''
   }),
@@ -83,14 +83,14 @@ export default {
     Footer
   },
   mounted(){
-    this.requestUser()
+    this.requestUser();
   },
   methods: {
     async requestUser(){
       const result = await requestUser();
 
       if (result) {
-        this.username = result.username;
+        this.$store.commit('setUser', result);
         this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
@@ -100,6 +100,7 @@ export default {
       this.rooms[roomIndex].expanded = !this.rooms[roomIndex].expanded;
     },
     establishWebSocketConnection(){
+      this.webSocket = this.$store.state.webSocket
       if (this.webSocket) return;
       
       let wsStart = 'ws://';
@@ -110,8 +111,8 @@ export default {
       }
 
       const endpoint = `${wsStart}${loc.host}${loc.pathname}`;
-      
-      this.webSocket = new WebSocket(endpoint);
+      this.$store.commit('setWebSocket', new WebSocket(endpoint));
+      this.webSocket = this.$store.state.webSocket
 
       this.webSocket.addEventListener('open', async () => {
         console.log('Connection opened!');
@@ -145,9 +146,8 @@ export default {
       const parsedData = JSON.parse(event.data);
       const peerUsername = parsedData['peer'];
       const action = parsedData['action'];
-      console.log(parsedData);
 
-      if (this.username === peerUsername) {
+      if (this.user.username === peerUsername) {
         return;
       }
 
@@ -183,54 +183,55 @@ export default {
     },
     sendSignal(action, message){
       const jsonStr = JSON.stringify({
-        'peer': this.username,
+        'peer': this.user.username,
         'action': action,
         'message': message
       });
-
+      
       this.webSocket.send(jsonStr);
     },
     async createOfferer(peerUsername, receiver_channel_name){
-      const peer = new RTCPeerConnection(null);
+      this.$store.commit('setPeer', new RTCPeerConnection(null));
+      this.peer = this.$store.state.peer;
 
-      this.addLocalTracks(peer);
+      this.addLocalTracks(this.peer);
 
-      const dc = peer.createDataChannel('channel');
+      const dc = this.peer.createDataChannel('channel');
       dc.addEventListener('open', () => {
         console.log('Connection opened!');
       });
       dc.addEventListener('message', this.dcOnMessage);
 
       
-      this.setOnTrack(peer);
-      this.mapPeers[peerUsername] = [peer, dc];
-      peer.addEventListener('iceconnectionstatechange', () => {
-        const iceConnectionState = peer.iceConnectionState;
+      this.setOnTrack(this.peer);
+      this.mapPeers[peerUsername] = [this.peer, dc];
+      this.peer.addEventListener('iceconnectionstatechange', () => {
+        const iceConnectionState = this.peer.iceConnectionState;
 
         if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
           console.log('Failed!');
           delete this.mapPeers[peerUsername]
 
           if(iceConnectionState !== 'closed') {
-            peer.close();
+            this.peer.close();
           }
         }
       });
 
-      peer.addEventListener('icecandidate', (event) => {
+      this.peer.addEventListener('icecandidate', (event) => {
         if (event.candidate) {
           // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
           return;
         }
 
         this.sendSignal('new-offer', {
-          'sdp': peer.localDescription,
+          'sdp': this.peer.localDescription,
           'receiver_channel_name': receiver_channel_name
         });
       })
 
-      const offer = await peer.createOffer();
-      peer.setLocalDescription(offer);
+      const offer = await this.peer.createOffer();
+      this.peer.setLocalDescription(offer);
       
       if (offer) {
         console.log('Local description set successfully.');
@@ -257,7 +258,8 @@ export default {
       });
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
-      console.log('Working!')
+      console.log('Working!');
+
       const peer = new RTCPeerConnection(null);
 
       this.addLocalTracks(peer);
@@ -318,8 +320,13 @@ export default {
       this.sendSignal('message', {
         'message': this.message
       });
-      this.globalMessages.push({ user: this.username, text: this.message });
+      this.globalMessages.push({ user: this.user.username, text: this.message });
       this.message = '';
+    }
+  },
+  computed: {
+    user() {
+      return this.$store.state.user;
     }
   }
 }

@@ -28,6 +28,7 @@ export default {
     async logout(){
       if (this.isLoggedIn()) {
         await requestLogout();
+        this.$store.commit('disconnect');
       }      
       
       this.$router.push('/login')
