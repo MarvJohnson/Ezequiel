@@ -13,6 +13,8 @@ django-cors-headers = "*"
 channels = "*"
 djoser = "*"
 channels-redis = "*"
+uvicorn = "*"
+gunicorn = "*"
 
 [dev-packages]
 

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3832dee73ef93bfcbf867c718e0f670a4b260b88d4aafb300e9dbd3ade92c226"
+            "sha256": "59e233021798e4819b9edeb41072f675ba66093455cf214b5b8a29fd947fb703"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -165,6 +165,13 @@
             "markers": "python_version >= '3'",
             "version": "==2.0.11"
         },
+        "click": {
+            "hashes": [
+                "sha256:353f466495adaeb40b6b5f592f9f91cb22372351c84caeb068132442a4518ef3",
+                "sha256:410e932b050f5eed773c4cda94de75971c89cdb3155a72a0831139a79e5ecb5b"
+            ],
+            "version": "==8.0.3"
+        },
         "constantly": {
             "hashes": [
                 "sha256:586372eb92059873e29eba4f9dec8381541b4d3834660707faf8ba59146dfc35",
@@ -271,6 +278,21 @@
             ],
             "index": "pypi",
             "version": "==2.1.0"
+        },
+        "gunicorn": {
+            "hashes": [
+                "sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e",
+                "sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8"
+            ],
+            "index": "pypi",
+            "version": "==20.1.0"
+        },
+        "h11": {
+            "hashes": [
+                "sha256:70813c1135087a248a4d38cc0e1a0181ffab2188141a93eaf567940c3957ff06",
+                "sha256:8ddd78563b633ca55346c8cd41ec0af27d3c79931828beffb46ce70a379e7442"
+            ],
+            "version": "==0.13.0"
         },
         "hiredis": {
             "hashes": [
@@ -690,6 +712,14 @@
                 "sha256:0e7c33d9a63e7ddfcb86780aac87befc2fbddf46c58dbb487e0855f7ceec283c"
             ],
             "version": "==1.26.8"
+        },
+        "uvicorn": {
+            "hashes": [
+                "sha256:25850bbc86195a71a6477b3e4b3b7b4c861fb687fb96912972ce5324472b1011",
+                "sha256:e85872d84fb651cccc4c5d2a71cf7ead055b8fb4d8f1e78e36092282c0cf2aec"
+            ],
+            "index": "pypi",
+            "version": "==0.17.4"
         },
         "whitenoise": {
             "hashes": [
