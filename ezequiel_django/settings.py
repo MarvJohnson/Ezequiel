@@ -161,19 +161,19 @@ DJOSER = {
 AUTH_USER_MODEL = 'ezequiel.User'
 
 # Will NOT function in production
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
-    }
-}
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer'
+#     }
+# }
 
 # Will function in production, but requires Redis and for the 'host' information to be configured
 # for Heroku
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis_core.RedisChannelLayer',
-#         'CONFIG': {
-#             'hosts': [('127.0.0.1', 3000)]
-#         }
-#     }
-# }
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(os.getenv('REDIS_HOST'), os.getenv('REDIS_PORT'))]
+        }
+    }
+}

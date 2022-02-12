@@ -43,13 +43,18 @@
         </section>
       </aside>
       <main>
-        <video id="remote-client-video" ref="remoteClientVideo" autoplay playsinline></video>
-        <video id="local-client-video" ref="localClientVideo" autoplay playsinline></video>
+        <div class="client-videos">
+          <ClientVideo v-for="(peer, index) in mapPeers" :key="index" :peer="peer" />
+        </div>
+        <video id="screen-sharing-video" ref="screenSharingVideo" autoplay playsinline></video>
+
         <div class="communication-buttons">
           <button @click="establishWebSocketConnection">Start call</button>
           <button>End call</button>
           <button @click="toggleAudio">Toggle audio</button>
           <button @click="toggleVideo">Toggle video</button>
+          <input type="text" v-model="room">
+          <button @click="establishWebSocketConnection">Test</button>
         </div>
       </main>
     </div>
@@ -60,6 +65,7 @@
 <script>
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import ClientVideo from '../components/ClientVideo'
 import { requestUser } from '../services/UserServices'
 
 export default {
@@ -73,6 +79,7 @@ export default {
     videoTracks: [],
     webSocket: null,
     peer: null,
+    room: '',
     remoteAudioTracks: [],
     remoteVideoTracks: [],
     globalMessages: [],
@@ -80,7 +87,8 @@ export default {
   }),
   components: {
     Header,
-    Footer
+    Footer,
+    ClientVideo
   },
   mounted(){
     this.requestUser();
@@ -90,8 +98,8 @@ export default {
       const result = await requestUser();
 
       if (result) {
-        this.$store.commit('setUser', result);
-        this.establishWebSocketConnection()
+        this.$store.commit('setUser', { username: Math.random().toString() });
+        // this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
       }
@@ -111,6 +119,7 @@ export default {
       }
 
       const endpoint = `${wsStart}${loc.host}${loc.pathname}`;
+      console.log(this.room)
       this.$store.commit('setWebSocket', new WebSocket(endpoint));
       this.webSocket = this.$store.state.webSocket
 
@@ -125,14 +134,17 @@ export default {
         // this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
         // this.audioTracks = this.localStream.getAudioTracks();
         // this.videoTracks = this.localStream.getVideoTracks();
+        
+        this.sendSignal('new-peer', {});
 
-        // this.sendSignal('new-peer', {});
+        // this.sendSignal('join-room', {
+        //   'room': this.room
+        // })
 
         // this.audioTracks[0].enabled = true;
         // this.videoTracks[0].enabled = true;
-        
-        // this.$refs.localClientVideo.srcObject = this.localStream;
-        // this.$refs.localClientVideo.muted = true;
+
+        // this.mapPeers[this.user.username] = { stream: this.localStream, username: this.user.username };
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
@@ -168,10 +180,10 @@ export default {
 
       if (action === 'new-answer') {
         const answer = parsedData['message']['sdp'];
-
-        const peer = this.mapPeers[peerUsername][0];
+        const peer = this.mapPeers[peerUsername].peer;
 
         peer.setRemoteDescription(answer);
+        console.log('Peer from answer:', peer);
 
         return;
       }
@@ -204,7 +216,8 @@ export default {
 
       
       this.setOnTrack(this.peer);
-      this.mapPeers[peerUsername] = [this.peer, dc];
+      console.log('Offerrer:', this.remoteStream.getAudioTracks());
+      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
 
@@ -251,10 +264,9 @@ export default {
       this.remoteAudioTracks = this.remoteStream.getAudioTracks();
       this.remoteVideoTracks = this.remoteStream.getVideoTracks();
 
-      this.$refs.remoteClientVideo.srcObject = this.remoteStream;
-
       peer.addEventListener('track', async (event) => {
         this.remoteStream.addTrack(event.track, this.remoteStream);
+        console.log('Add track:', this.remoteStream.getAudioTracks());
       });
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
@@ -274,7 +286,8 @@ export default {
         });
         peer.dc.addEventListener('message', this.dcOnMessage);
 
-        this.mapPeers[peerUsername] = [peer, peer.dc];
+        console.log('Remote', this.remoteStream);
+        this.mapPeers[peerUsername] = { peer, dataChannel: peer.dc, stream: this.remoteStream, username: peerUsername };
       });
 
 
@@ -341,6 +354,9 @@ export default {
 
   main {
     position: relative;
+    height: 100vh;
+    padding: 1rem 0;
+    box-sizing: border-box;
   }
 
   aside {
@@ -354,7 +370,7 @@ export default {
   .global-chat-display {
     display: flex;
     flex-direction: column;
-    justify-content: end;
+    justify-content: flex-end;
     gap: 0.5rem;
     padding-bottom: 0.5rem;
     background-color: var(--surface2);
@@ -459,17 +475,18 @@ export default {
     border-radius: 20px;
   }
 
-  #local-client-video {
-    position: absolute;
-    top: 2rem;
-    left: 2rem;
+  .client-videos {
+    display: grid;
+    grid-auto-rows: 200px;
+    margin-left: 1rem;
     width: 200px;
-    height: 200px;
-    transform: scaleX(-1);
-    background-color: var(--surface1);
+    height: 100%;
+    box-sizing: border-box;
+    gap: 1rem;
+    overflow-y: auto;
   }
 
-  #remote-client-video {
+  #screen-sharing-video {
     width: 100%;
     height: 100%;
     transform: scaleX(-1);

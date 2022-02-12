@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
+Django = "*"
 psycopg2-binary = "*"
 daphne = "*"
 djangorestframework = "*"
@@ -12,6 +12,7 @@ whitenoise = "*"
 django-cors-headers = "*"
 channels = "*"
 djoser = "*"
+channels-redis = "*"
 
 [dev-packages]
 
