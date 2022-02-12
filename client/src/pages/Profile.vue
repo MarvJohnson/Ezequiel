@@ -144,7 +144,7 @@ export default {
         this.audioTracks[0].enabled = true;
         this.videoTracks[0].enabled = true;
 
-        this.mapPeers[this.user.username] = { stream: this.localStream, username: this.user.username };
+        this.mapPeers[this.user.username] = { stream: this.localStream, username: this.user.username, muted: true };
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
@@ -183,7 +183,7 @@ export default {
         const peer = this.mapPeers[peerUsername].peer;
 
         peer.setRemoteDescription(answer);
-        console.log('Peer from answer:', peer);
+        console.log('Received answer from:', peerUsername);
 
         return;
       }
@@ -216,8 +216,9 @@ export default {
 
       
       this.setOnTrack(this.peer);
-      console.log('Offerrer:', this.remoteStream.getAudioTracks());
-      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
+      console.log('Offerrer Audio:', this.remoteStream.getAudioTracks());
+      console.log('Offerrer Video:', this.remoteStream.getVideoTracks());
+
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
 
@@ -237,27 +238,29 @@ export default {
           return;
         }
 
-        this.sendSignal('new-offer', {
+      const offer = await this.peer.createOffer();
+      this.peer.setLocalDescription(offer);
+      
+      this.sendSignal('new-offer', {
           'sdp': this.peer.localDescription,
           'receiver_channel_name': receiver_channel_name
         });
       })
-
-      const offer = await this.peer.createOffer();
-      this.peer.setLocalDescription(offer);
       
       if (offer) {
         console.log('Local description set successfully.');
       }
+      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
     },
     addLocalTracks(peer){
       this.localStream.getTracks().forEach(track => {
-        peer.addTrack(track, this.localStream)
+        console.log('Adding local track:', track);
+        peer.addTrack(track)
       })
     },
     dcOnMessage(event){
       const message = event.data;
-      console.log(message);
+      console.log('DataChannel Message:', message);
     },
     setOnTrack(peer){
       this.remoteStream = new MediaStream();
@@ -265,18 +268,19 @@ export default {
       this.remoteVideoTracks = this.remoteStream.getVideoTracks();
 
       peer.addEventListener('track', async (event) => {
-        this.remoteStream.addTrack(event.track, this.remoteStream);
-        console.log('Add track:', this.remoteStream.getAudioTracks());
+        console.log('Adding remote track:', event.track);
+        this.remoteStream.addTrack(event.track);
       });
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
-      console.log('Working!');
-
+      console.log('Creating answerer for:', peerUsername);
       const peer = new RTCPeerConnection(null);
-
+      await peer.setRemoteDescription(offer);
       this.addLocalTracks(peer);
-
       this.setOnTrack(peer);
+      console.log('Remote description set successfully for %s.', peerUsername);
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
 
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
@@ -286,7 +290,7 @@ export default {
         });
         peer.dc.addEventListener('message', this.dcOnMessage);
 
-        console.log('Remote', this.remoteStream);
+        console.log('Remote DataChannel:', peerUsername);
         this.mapPeers[peerUsername] = { peer, dataChannel: peer.dc, stream: this.remoteStream, username: peerUsername };
       });
 
@@ -308,17 +312,12 @@ export default {
           // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
           return;
         }
+      });
 
-        this.sendSignal('new-answer', {
+      this.sendSignal('new-answer', {
           'sdp': peer.localDescription,
           'receiver_channel_name': receiver_channel_name
         });
-      })
-
-      await peer.setRemoteDescription(offer);
-      console.log('Remote description set successfully for %s.', peerUsername);
-      const answer = await peer.createAnswer();
-      peer.setLocalDescription(answer);
     },
     toggleAudio(){
       console.log(this.audioTracks)
