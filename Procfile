@@ -1,3 +1,3 @@
 
-web: gunicorn ezequiel_django.asgi:application -k uvicorn.workers.UvicornWorker
-worker: daphne -p 8001 ezequiel_django.asgi:application
+web: daphne ezequiel_django.asgi:channel_layer --port $PORT --bind 0.0.0.0 -v2
+worker: python manage.py runworker -v2
