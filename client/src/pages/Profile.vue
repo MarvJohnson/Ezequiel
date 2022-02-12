@@ -206,18 +206,27 @@ export default {
       this.$store.commit('setPeer', new RTCPeerConnection(null));
       this.peer = this.$store.state.peer;
 
-      this.addLocalTracks(this.peer);
+      this.addLocalTracks(this.peer);      
+      this.setOnTrack(this.peer);
+      console.log('Offerrer Audio:', this.remoteStream.getAudioTracks());
+      console.log('Offerrer Video:', this.remoteStream.getVideoTracks());
+      const offer = await this.peer.createOffer();
+      this.peer.setLocalDescription(offer);
+      this.sendSignal('new-offer', {
+          'sdp': this.peer.localDescription,
+          'receiver_channel_name': receiver_channel_name
+        });
+      
+      if (offer) {
+        console.log('Local description set successfully.');
+      }
+      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
 
       const dc = this.peer.createDataChannel('channel');
       dc.addEventListener('open', () => {
         console.log('Connection opened!');
       });
       dc.addEventListener('message', this.dcOnMessage);
-
-      
-      this.setOnTrack(this.peer);
-      console.log('Offerrer Audio:', this.remoteStream.getAudioTracks());
-      console.log('Offerrer Video:', this.remoteStream.getVideoTracks());
 
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
@@ -237,20 +246,7 @@ export default {
           // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
           return;
         }
-
-      const offer = await this.peer.createOffer();
-      this.peer.setLocalDescription(offer);
-      
-      this.sendSignal('new-offer', {
-          'sdp': this.peer.localDescription,
-          'receiver_channel_name': receiver_channel_name
-        });
       })
-      
-      if (offer) {
-        console.log('Local description set successfully.');
-      }
-      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
     },
     addLocalTracks(peer){
       this.localStream.getTracks().forEach(track => {
