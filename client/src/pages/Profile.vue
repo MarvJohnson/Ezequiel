@@ -213,11 +213,8 @@ export default {
       console.log('Offerrer Audio:', this.remoteStream.getAudioTracks());
       console.log('Offerrer Video:', this.remoteStream.getVideoTracks());
       const offer = await this.peer.createOffer();
-      this.peer.setLocalDescription(offer);
-      if (offer) {
-        console.log('Local description set successfully.');
-        console.log('Local description:', this.peer.localDescription);
-      }
+      await this.peer.setLocalDescription(offer);
+      console.log('Local description was set to:', this.peer.localDescription);
       this.sendSignal('new-offer', {
           'sdp': this.peer.localDescription,
           'receiver_channel_name': receiver_channel_name
@@ -283,7 +280,12 @@ export default {
       const answer = await peer.createAnswer();
       console.log('Answer created successfully!');
       await peer.setLocalDescription(answer);
-      console.log('Set local description successfully!');
+      console.log('Local description set to:', peer.localDescription);
+      console.log('Sending answer to:', peerUsername);
+      this.sendSignal('new-answer', {
+          'sdp': peer.localDescription,
+          'receiver_channel_name': receiver_channel_name
+        });
 
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
@@ -316,11 +318,6 @@ export default {
           return;
         }
       });
-
-      this.sendSignal('new-answer', {
-          'sdp': peer.localDescription,
-          'receiver_channel_name': receiver_channel_name
-        });
     },
     toggleAudio(){
       console.log(this.audioTracks)
