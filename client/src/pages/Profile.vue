@@ -166,13 +166,14 @@ export default {
       const receiver_channel_name = parsedData['message']['receiver_channel_name']
 
       if (action === 'new-peer') {
+        console.log('New peer:', peerUsername);
         this.createOfferer(peerUsername, receiver_channel_name);
         return;
       }
 
       if (action === 'new-offer') {
+        console.log('Received new offer from:', peerUsername);
         const offer = parsedData['message']['sdp'];
-
         this.createAnswerer(offer, peerUsername, receiver_channel_name);
         
         return;
@@ -203,6 +204,7 @@ export default {
       this.webSocket.send(jsonStr);
     },
     async createOfferer(peerUsername, receiver_channel_name){
+      console.log('Creating new offer for', peerUsername);
       this.$store.commit('setPeer', new RTCPeerConnection(null));
       this.peer = this.$store.state.peer;
 
@@ -212,14 +214,15 @@ export default {
       console.log('Offerrer Video:', this.remoteStream.getVideoTracks());
       const offer = await this.peer.createOffer();
       this.peer.setLocalDescription(offer);
+      if (offer) {
+        console.log('Local description set successfully.');
+        console.log('Local description:', this.peer.localDescription);
+      }
       this.sendSignal('new-offer', {
           'sdp': this.peer.localDescription,
           'receiver_channel_name': receiver_channel_name
         });
-      
-      if (offer) {
-        console.log('Local description set successfully.');
-      }
+      console.log('Sent offer to:', peerUsername);
       this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
 
       const dc = this.peer.createDataChannel('channel');
@@ -270,13 +273,17 @@ export default {
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
       console.log('Creating answerer for:', peerUsername);
+      console.log('from offer:', offer);
       const peer = new RTCPeerConnection(null);
       await peer.setRemoteDescription(offer);
+      console.log('Remote description set for:', peerUsername);
       this.addLocalTracks(peer);
+      console.log('Added local tracks');
       this.setOnTrack(peer);
-      console.log('Remote description set successfully for %s.', peerUsername);
       const answer = await peer.createAnswer();
+      console.log('Answer created successfully!');
       await peer.setLocalDescription(answer);
+      console.log('Set local description successfully!');
 
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
