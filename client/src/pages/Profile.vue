@@ -210,8 +210,8 @@ export default {
 
       this.addLocalTracks(this.peer);      
       this.setOnTrack(this.peer);
-      console.log('Offerrer Audio:', this.remoteStream.getAudioTracks());
-      console.log('Offerrer Video:', this.remoteStream.getVideoTracks());
+      console.log('Offerrer Audio:', this.localStream.getAudioTracks());
+      console.log('Offerrer Video:', this.localStream.getVideoTracks());
       const offer = await this.peer.createOffer();
       await this.peer.setLocalDescription(offer);
       console.log('Local description was set to:', this.peer.localDescription);
@@ -220,13 +220,14 @@ export default {
           'receiver_channel_name': receiver_channel_name
         });
       console.log('Sent offer to:', peerUsername);
-      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
 
       const dc = this.peer.createDataChannel('channel');
       dc.addEventListener('open', () => {
         console.log('Connection opened!');
       });
       dc.addEventListener('message', this.dcOnMessage);
+
+      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
 
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
@@ -243,7 +244,8 @@ export default {
 
       this.peer.addEventListener('icecandidate', (event) => {
         if (event.candidate) {
-          // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
+          console.log('New ice candidate for:', peerUsername);
+          console.log('Ice candidate:', this.peer.localDescription);
           return;
         }
       })
@@ -266,6 +268,7 @@ export default {
       peer.addEventListener('track', async (event) => {
         console.log('Adding remote track:', event.track);
         this.remoteStream.addTrack(event.track);
+        console.log('Current mapPeers:', this.mapPeers);
       });
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
@@ -287,6 +290,8 @@ export default {
           'receiver_channel_name': receiver_channel_name
         });
 
+      this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
+
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
 
@@ -296,7 +301,6 @@ export default {
         peer.dc.addEventListener('message', this.dcOnMessage);
 
         console.log('Remote DataChannel:', peerUsername);
-        this.mapPeers[peerUsername] = { peer, dataChannel: peer.dc, stream: this.remoteStream, username: peerUsername };
       });
 
 
@@ -314,7 +318,8 @@ export default {
 
       peer.addEventListener('icecandidate', (event) => {
         if (event.candidate) {
-          // console.log('New ice candidate:', JSON.stringify(peer.localDescription));
+          console.log('New ice candidate for:', peerUsername);
+          console.log('Ice candidate:', this.peer.localDescription);
           return;
         }
       });
