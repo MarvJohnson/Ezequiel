@@ -1,0 +1,20 @@
+{
+  "name": "ezequiel",
+  "version": "1.0.0",
+  "description": "## Date: 02/06/2022",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarvJohnson/Ezequiel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MarvJohnson/Ezequiel/issues"
+  },
+  "homepage": "https://github.com/MarvJohnson/Ezequiel#readme"
+}
