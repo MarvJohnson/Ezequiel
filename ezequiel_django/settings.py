@@ -160,7 +160,7 @@ DJOSER = {
 
 AUTH_USER_MODEL = 'ezequiel.User'
 
-# Will NOT function in production
+# Will NOT function in production (not well, at least)
 # CHANNEL_LAYERS = {
 #     'default': {
 #         'BACKEND': 'channels.layers.InMemoryChannelLayer'

@@ -126,14 +126,14 @@ export default {
       this.webSocket.addEventListener('open', async () => {
         console.log('Connection opened!');
 
-        // const constraints = {
-        //   'video': true,
-        //   'audio': true
-        // }
+        const constraints = {
+          'video': true,
+          'audio': true
+        }
 
-        // this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        // this.audioTracks = this.localStream.getAudioTracks();
-        // this.videoTracks = this.localStream.getVideoTracks();
+        this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        this.audioTracks = this.localStream.getAudioTracks();
+        this.videoTracks = this.localStream.getVideoTracks();
         
         this.sendSignal('new-peer', {});
 
@@ -141,10 +141,10 @@ export default {
         //   'room': this.room
         // })
 
-        // this.audioTracks[0].enabled = true;
-        // this.videoTracks[0].enabled = true;
+        this.audioTracks[0].enabled = true;
+        this.videoTracks[0].enabled = true;
 
-        // this.mapPeers[this.user.username] = { stream: this.localStream, username: this.user.username };
+        this.mapPeers[this.user.username] = { stream: this.localStream, username: this.user.username };
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
