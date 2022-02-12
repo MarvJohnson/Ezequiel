@@ -129,7 +129,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'var/static_root/')
+STATICFILES_DIRS = ['static']
 
 CORS_ALLOWED_ORIGINS = ['https://ezequiel-web.herokuapp.com', 'http://localhost:8000', 'http://127.0.0.1:8000']
 # CSRF_COOKIE_SECURE = os.environ['MODE'] == 'production'
