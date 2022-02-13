@@ -8,6 +8,7 @@ const store = createStore({
     return {
       user: null,
       webSocket: null,
+      mapPeers: {},
       peer: null
     };
   },
@@ -24,6 +25,13 @@ const store = createStore({
     disconnect(state) {
       state.peer?.close();
       state.webSocket = null;
+    },
+    setMapPeers(state, peerInfo) {
+      console.log(peerInfo);
+      state.mapPeers[peerInfo.username] = { ...state.mapPeers, ...peerInfo };
+    },
+    deleteMapPeer(state, peerUsername) {
+      delete state.mapPeers[peerUsername];
     }
   }
 });

@@ -44,7 +44,7 @@
       </aside>
       <main>
         <div class="client-videos">
-          <ClientVideo v-for="(peer, index) in mapPeers" :key="index" :peer="peer" />
+          <ClientVideo v-for="(peer, index) in this.$store.state.mapPeers" :key="index" :peer="peer" />
         </div>
         <video id="screen-sharing-video" ref="screenSharingVideo" autoplay playsinline></video>
 
@@ -74,7 +74,6 @@ export default {
     rooms: [...Array(20)].map(() => ({ expanded: false, occupants: 1 + Math.floor(Math.random() * 9), private: Boolean(Math.round(Math.random())) })),
     localStream: {},
     remoteStream: {},
-    mapPeers: {},
     audioTracks: [],
     videoTracks: [],
     webSocket: null,
@@ -141,9 +140,9 @@ export default {
       }
 
       const endpoint = `${wsStart}${loc.host}${loc.pathname}`;
-      console.log(this.room)
+      console.log(this.room);
       this.$store.commit('setWebSocket', new WebSocket(endpoint));
-      this.webSocket = this.$store.state.webSocket
+      this.webSocket = this.$store.state.webSocket;
 
       this.webSocket.addEventListener('open', async () => {
         console.log('Connection opened!');
@@ -162,7 +161,7 @@ export default {
         this.audioTracks[0].enabled = true;
         this.videoTracks[0].enabled = true;
 
-        this.mapPeers[this.user.username] = { stream: this.localStream, username: this.user.username, muted: true };
+        this.$store.commit('setMapPeers', { stream: this.localStream, username: this.user.username, muted: true });
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
@@ -199,7 +198,7 @@ export default {
 
       if (action === 'new-answer') {
         const answer = parsedData['message']['sdp'];
-        const peer = this.mapPeers[peerUsername].peer;
+        const peer = this.$store.state.mapPeers[peerUsername].peer;
 
         const rtcDesc = new RTCSessionDescription(answer);
         peer.setRemoteDescription(rtcDesc);
@@ -212,7 +211,7 @@ export default {
         console.log('Received ice candidate from:', peerUsername);
         const candidate = new RTCIceCandidate(parsedData['message']['ice']);
         console.log('Ice candidate:', candidate);
-        this.mapPeers[peerUsername].peer.addIceCandidate(candidate)
+        this.$store.state.mapPeers[peerUsername].peer.addIceCandidate(candidate)
       }
 
       if (action === 'message') {
@@ -245,7 +244,7 @@ export default {
 
         if (iceConnectionState === 'failed' || iceConnectionState === 'closed') {
           console.log('Connection for %s failed!', peerUsername);
-          delete this.mapPeers[peerUsername]
+          this.$store.commit('deleteMapPeer');
 
           if(iceConnectionState !== 'closed') {
             console.log('Closing connection for %s!', peerUsername);
@@ -282,7 +281,7 @@ export default {
       console.log('Offerrer Audio:', this.localStream.getAudioTracks());
       console.log('Offerrer Video:', this.localStream.getVideoTracks());
       this.setOnTrack(this.peer);
-      this.mapPeers[peerUsername] = { peer: this.peer, stream: this.remoteStream, username: peerUsername };
+      this.$store.commit('setMapPeers', { peer: this.peer, stream: this.remoteStream, username: peerUsername });
     },
     addLocalTracks(peer){
       this.localStream.getTracks().forEach(track => {
@@ -302,7 +301,7 @@ export default {
       peer.addEventListener('track', async (event) => {
         console.log('Adding remote track:', event.track);
         this.remoteStream.addTrack(event.track);
-        console.log('Current mapPeers:', this.mapPeers);
+        console.log('Current mapPeers:', this.$store.state.mapPeers);
       });
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
@@ -326,7 +325,7 @@ export default {
         const iceConnectionState = peer.iceConnectionState;
 
         if (iceConnectionState === 'failed' || iceConnectionState === 'closed') {
-          delete this.mapPeers[peerUsername]
+          this.$store.commit('deleteMapPeer', peerUsername);
 
           if (iceConnectionState === 'failed') {
             console.log('Connection for %s failed!', peerUsername);
@@ -355,7 +354,7 @@ export default {
       this.addLocalTracks(peer);
       console.log('Added local tracks');
       this.setOnTrack(peer);
-      this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
+      this.$store.commit('setMapPeers', { peer, stream: this.remoteStream, username: peerUsername });
       const remoteSDP = new RTCSessionDescription(offer);
       await peer.setRemoteDescription(remoteSDP);
       console.log('Remote description set for:', peerUsername);
