@@ -292,6 +292,7 @@ export default {
       this.addLocalTracks(peer);
       console.log('Added local tracks');
       this.setOnTrack(peer);
+      this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
       const answer = await peer.createAnswer();
       console.log('Answer created successfully!');
       await peer.setLocalDescription(answer);
@@ -301,8 +302,6 @@ export default {
           'sdp': peer.localDescription,
           'receiver_channel_name': receiver_channel_name
         });
-
-      this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
 
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
