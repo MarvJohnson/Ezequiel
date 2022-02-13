@@ -216,20 +216,6 @@ export default {
       this.$store.commit('setPeer', new RTCPeerConnection(null));
       this.peer = this.$store.state.peer;
 
-      this.addLocalTracks(this.peer);      
-      this.setOnTrack(this.peer);
-      console.log('Offerrer Audio:', this.localStream.getAudioTracks());
-      console.log('Offerrer Video:', this.localStream.getVideoTracks());
-      this.mapPeers[peerUsername] = { peer: this.peer, stream: this.remoteStream, username: peerUsername };
-      const offer = await this.peer.createOffer();
-      await this.peer.setLocalDescription(offer);
-      console.log('Local description was set to:', this.peer.localDescription);
-      this.sendSignal('new-offer', {
-          'sdp': this.peer.localDescription,
-          'receiver_channel_name': receiver_channel_name
-        });
-      console.log('Sent offer to:', peerUsername);
-
       const dc = this.peer.createDataChannel('channel');
       dc.addEventListener('open', () => {
         console.log('Connection opened!');
@@ -260,6 +246,24 @@ export default {
           });
         }
       }
+
+      peer.onnegotiationneeded = (event) => {
+        console.log('Negotiation needed!');
+        const offer = await this.peer.createOffer();
+        await this.peer.setLocalDescription(offer);
+        console.log('Local description was set to:', this.peer.localDescription);
+        this.sendSignal('new-offer', {
+        'sdp': this.peer.localDescription,
+        'receiver_channel_name': receiver_channel_name
+        });
+        console.log('Sent offer to:', peerUsername);
+      }
+
+      this.addLocalTracks(this.peer);      
+      console.log('Offerrer Audio:', this.localStream.getAudioTracks());
+      console.log('Offerrer Video:', this.localStream.getVideoTracks());
+      this.setOnTrack(this.peer);
+      this.mapPeers[peerUsername] = { peer: this.peer, stream: this.remoteStream, username: peerUsername };
     },
     addLocalTracks(peer){
       this.localStream.getTracks().forEach(track => {
@@ -290,7 +294,8 @@ export default {
       console.log('Added local tracks');
       this.setOnTrack(peer);
       this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
-      await peer.setRemoteDescription(offer);
+      const remoteSDP = new RTCSessionDescription(offer);
+      await peer.setRemoteDescription(remoteSDP);
       console.log('Remote description set for:', peerUsername);
       const answer = await peer.createAnswer();
       console.log('Answer created successfully!');
@@ -317,10 +322,15 @@ export default {
       peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = peer.iceConnectionState;
 
-        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
+        if (iceConnectionState === 'failed' || iceConnectionState === 'closed') {
           delete this.mapPeers[peerUsername]
 
+          if (iceConnectionState === 'failed') {
+            console.log('Connection for %s failed!', peerUsername);
+          }
+          
           if(iceConnectionState !== 'closed') {
+            console.log('Closing connection for %s!', peerUsername);
             peer.close();
           }
         }
