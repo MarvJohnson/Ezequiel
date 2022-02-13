@@ -194,7 +194,7 @@ export default {
         console.log('Received ice candidate from:', peerUsername);
         const candidate = new RTCIceCandidate(parsedData['message']['ice']);
         console.log('Ice candidate:', candidate);
-        this.mapPeers[this.user.username].peer.addIceCandidate(candidate)
+        this.mapPeers[peerUsername].peer.addIceCandidate(candidate)
       }
 
       if (action === 'message') {
