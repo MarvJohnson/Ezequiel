@@ -247,7 +247,7 @@ export default {
         }
       }
 
-      peer.onnegotiationneeded = (event) => {
+      this.peer.onnegotiationneeded = async (event) => {
         console.log('Negotiation needed!');
         const offer = await this.peer.createOffer();
         await this.peer.setLocalDescription(offer);
