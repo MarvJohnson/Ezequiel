@@ -2,11 +2,10 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
-  testing = []
+  rooms = {}
   
   async def connect(self):
     self.room_group_name = 'Global-Room'
-    self.testing.append(self.channel_name)
     await self.channel_layer.group_add(
       self.room_group_name,
       self.channel_name
@@ -25,8 +24,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
   async def receive(self, text_data):
     receive_dict = json.loads(text_data)
-    print('Received message from:', self.testing)
-    # print('Received', receive_dict)
     message = receive_dict['message']
     action = receive_dict['action']
 
@@ -44,6 +41,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
       
       return
 
+    if action == 'make-new-room':
+      room_name = receive_dict['message']['room_name']
+      
+      if room_name in self.rooms:
+        print('Cannot make room: duplicate room name')
+        return
+      
+      self.rooms[room_name] = [receive_dict['peer']]
+      print('rooms dictionary is now:', self.rooms)
+      await self.channel_layer.group_add(
+        room_name,
+        self.channel_name
+      )
+
+      await self.channel_layer.group_send(
+        room_name,
+        {  
+          'type': 'send.welcome',
+          'message': f'{receive_dict["peer"]} joined the room!'
+        }
+      )
 
     receive_dict['message']['receiver_channel_name'] = self.channel_name
 
@@ -57,6 +75,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
   async def send_sdp(self, event):
     receive_dict = event['receive_dict']
-    receive_dict['connections'] = self.testing
 
     await self.send(text_data=json.dumps(receive_dict))
+
+  async def send_welcome(self, event):
+    message = event['message']
+
+    await self.send(text_data=json.dumps(message))
