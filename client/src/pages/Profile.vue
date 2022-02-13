@@ -54,7 +54,7 @@
           <button @click="toggleAudio">Toggle audio</button>
           <button @click="toggleVideo">Toggle video</button>
           <input type="text" v-model="room">
-          <button @click="establishWebSocketConnection">Test</button>
+          <button @click="toggleScreenSharing">Screen Share</button>
         </div>
       </main>
     </div>
@@ -76,6 +76,7 @@ export default {
     remoteStream: {},
     audioTracks: [],
     videoTracks: [],
+    screenMediaStream: null,
     webSocket: null,
     peer: null,
     iceSettings: {
@@ -119,7 +120,7 @@ export default {
       const result = await requestUser();
 
       if (result) {
-        this.$store.commit('setUser', { username: result.username });
+        this.$store.commit('setUser', { username: Math.random().toString() });
         // this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
@@ -153,13 +154,11 @@ export default {
         }
 
         this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
         this.audioTracks = this.localStream.getAudioTracks();
         this.videoTracks = this.localStream.getVideoTracks();
         
         this.sendSignal('new-peer', {});
-
-        this.audioTracks[0].enabled = true;
-        this.videoTracks[0].enabled = true;
 
         this.$store.commit('setMapPeers', { stream: this.localStream, username: this.user.username, muted: true });
       });
@@ -184,6 +183,7 @@ export default {
 
       if (action === 'new-peer') {
         console.log('New peer:', peerUsername);
+        console.log('Peer:', parsedData);
         this.createOfferer(peerUsername, receiver_channel_name);
         return;
       }
@@ -265,13 +265,13 @@ export default {
         }
       }
 
-      this.peer.onnegotiationneeded = async () => {
-        console.log('Negotiation needed!');
-        const offer = await this.peer.createOffer();
-        await this.peer.setLocalDescription(offer);
-        console.log('Local description was set to:', this.peer.localDescription);
+      this.peer.onnegotiationneeded = async (e) => {
+        console.log('Negotiation needed for peer:', e.target);
+        const offer = await e.target.createOffer();
+        await e.target.setLocalDescription(offer);
+        console.log('Local description was set to:', e.target.localDescription);
         this.sendSignal('new-offer', {
-        'sdp': this.peer.localDescription,
+        'sdp': e.target.localDescription,
         'receiver_channel_name': receiver_channel_name
         });
         console.log('Sent offer to:', peerUsername);
@@ -282,6 +282,7 @@ export default {
       console.log('Offerrer Video:', this.localStream.getVideoTracks());
       this.setOnTrack(this.peer);
       this.$store.commit('setMapPeers', { peer: this.peer, stream: this.remoteStream, username: peerUsername });
+
     },
     addLocalTracks(peer){
       this.localStream.getTracks().forEach(track => {
@@ -298,11 +299,18 @@ export default {
       this.remoteAudioTracks = this.remoteStream.getAudioTracks();
       this.remoteVideoTracks = this.remoteStream.getVideoTracks();
 
-      peer.addEventListener('track', async (event) => {
-        console.log('Adding remote track:', event.track);
-        this.remoteStream.addTrack(event.track);
+      peer.ontrack = async (event) => {
+        console.log('Track adding event:', event);
+        if(event.streams.length) {
+          console.log('Set screenSharingVideo to:', event.streams[0]);
+          this.$refs.screenSharingVideo.srcObject = event.streams[0];
+        } else {
+          console.log('Adding remote track:', event.track);
+          this.remoteStream.addTrack(event.track);
+        }
+          console.log(this.remoteStream.getVideoTracks());
         console.log('Current mapPeers:', this.$store.state.mapPeers);
-      });
+      };
     },
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
       console.log('Creating answerer for:', peerUsername);
@@ -383,6 +391,28 @@ export default {
       });
       this.globalMessages.push({ user: this.user.username, text: this.message });
       this.message = '';
+    },
+    async toggleScreenSharing() {
+      // this.screenMediaStream = await navigator.mediaDevices.getDisplayMedia();
+      // console.log(this.screenMediaStream.getTracks());
+
+      // this.localStream.addTrack(this.screenMediaStream.getTracks()[0]);
+
+      // if (this.screenMediaStream ) {
+      //   this.$refs.screenSharingVideo.srcObject = this.screenMediaStream;
+        
+      //   for (let [, peer] of Object.entries(this.$store.state.mapPeers)) {
+      //     if (peer.username !== this.user.username) {
+      //       // this.localStream.getTracks().forEach(track => {
+      //       //   console.log('Adding track to %s\'s stream!', peer.username);
+      //       //   console.log(peer)
+      //       //   peer.peer.addTrack(track, this.localStream);
+      //       // });
+
+      //       peer.peer.addTrack(this.screenMediaStream.getTracks()[0], this.screenMediaStream)
+      //     }
+      //   }
+      // }
     }
   },
   computed: {
@@ -535,6 +565,9 @@ export default {
   }
 
   #screen-sharing-video {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     transform: scaleX(-1);

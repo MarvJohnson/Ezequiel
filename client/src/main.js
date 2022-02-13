@@ -27,7 +27,7 @@ const store = createStore({
       state.webSocket = null;
     },
     setMapPeers(state, peerInfo) {
-      console.log(peerInfo);
+      console.log('New object', { ...state.mapPeers, ...peerInfo });
       state.mapPeers[peerInfo.username] = { ...state.mapPeers, ...peerInfo };
     },
     deleteMapPeer(state, peerUsername) {

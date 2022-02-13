@@ -1,6 +1,6 @@
 <template>
   <div class="client-video">
-    <video ref="video" autoplay playsinline></video>
+    <video ref="video" autoplay playsinline :srcObject="peer.stream"></video>
     <p>{{ peer.username }}</p>
   </div>
 </template>
@@ -40,8 +40,8 @@ export default {
       //   }
       // }, 100);
       
-      this.$refs.video.srcObject = this.peer.stream;
-      this.$refs.video.muted = !!this.peer.muted;
+      // this.$refs.video.srcObject = this.peer.stream;
+      // this.$refs.video.muted = !!this.peer.muted;
     }
   }
 }
