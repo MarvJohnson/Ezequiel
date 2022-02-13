@@ -79,6 +79,28 @@ export default {
     videoTracks: [],
     webSocket: null,
     peer: null,
+    iceSettings: {
+      iceServers: [
+        {
+          urls: "stun:openrelay.metered.ca:80"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
+      ]
+    },
     room: '',
     remoteAudioTracks: [],
     remoteVideoTracks: [],
@@ -209,7 +231,7 @@ export default {
     },
     async createOfferer(peerUsername, receiver_channel_name){
       console.log('Creating new offer for', peerUsername);
-      this.$store.commit('setPeer', new RTCPeerConnection(null));
+      this.$store.commit('setPeer', new RTCPeerConnection(iceSettings));
       this.peer = this.$store.state.peer;
 
       const dc = this.peer.createDataChannel('channel');
@@ -286,24 +308,8 @@ export default {
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
       console.log('Creating answerer for:', peerUsername);
       console.log('from offer:', offer);
-      const peer = new RTCPeerConnection(null);
-      this.addLocalTracks(peer);
-      console.log('Added local tracks');
-      this.setOnTrack(peer);
-      this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
-      const remoteSDP = new RTCSessionDescription(offer);
-      await peer.setRemoteDescription(remoteSDP);
-      console.log('Remote description set for:', peerUsername);
-      const answer = await peer.createAnswer();
-      console.log('Answer created successfully!');
-      await peer.setLocalDescription(answer);
-      console.log('Local description set to:', peer.localDescription);
-      console.log('Sending answer to:', peerUsername);
-      this.sendSignal('new-answer', {
-          'sdp': peer.localDescription,
-          'receiver_channel_name': receiver_channel_name
-        });
-
+      const peer = new RTCPeerConnection(iceSettings);
+      
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
 
@@ -345,6 +351,23 @@ export default {
           return;
         }
       };
+
+      this.addLocalTracks(peer);
+      console.log('Added local tracks');
+      this.setOnTrack(peer);
+      this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
+      const remoteSDP = new RTCSessionDescription(offer);
+      await peer.setRemoteDescription(remoteSDP);
+      console.log('Remote description set for:', peerUsername);
+      const answer = await peer.createAnswer();
+      console.log('Answer created successfully!');
+      await peer.setLocalDescription(answer);
+      console.log('Local description set to:', peer.localDescription);
+      console.log('Sending answer to:', peerUsername);
+      this.sendSignal('new-answer', {
+          'sdp': peer.localDescription,
+          'receiver_channel_name': receiver_channel_name
+        });
     },
     toggleAudio(){
       console.log(this.audioTracks)
