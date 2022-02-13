@@ -137,10 +137,6 @@ export default {
         
         this.sendSignal('new-peer', {});
 
-        // this.sendSignal('join-room', {
-        //   'room': this.room
-        // })
-
         this.audioTracks[0].enabled = true;
         this.videoTracks[0].enabled = true;
 
@@ -247,7 +243,7 @@ export default {
         }
       }
 
-      this.peer.onnegotiationneeded = async (event) => {
+      this.peer.onnegotiationneeded = async () => {
         console.log('Negotiation needed!');
         const offer = await this.peer.createOffer();
         await this.peer.setLocalDescription(offer);
