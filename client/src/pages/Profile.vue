@@ -231,7 +231,7 @@ export default {
     },
     async createOfferer(peerUsername, receiver_channel_name){
       console.log('Creating new offer for', peerUsername);
-      this.$store.commit('setPeer', new RTCPeerConnection(iceSettings));
+      this.$store.commit('setPeer', new RTCPeerConnection(this.iceSettings));
       this.peer = this.$store.state.peer;
 
       const dc = this.peer.createDataChannel('channel');
@@ -308,7 +308,7 @@ export default {
     async createAnswerer(offer, peerUsername, receiver_channel_name) {
       console.log('Creating answerer for:', peerUsername);
       console.log('from offer:', offer);
-      const peer = new RTCPeerConnection(iceSettings);
+      const peer = new RTCPeerConnection(this.iceSettings);
       
       peer.addEventListener('datachannel', e => {
         peer.dc = e.channel;
