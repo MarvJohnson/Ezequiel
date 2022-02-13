@@ -220,6 +220,7 @@ export default {
       this.setOnTrack(this.peer);
       console.log('Offerrer Audio:', this.localStream.getAudioTracks());
       console.log('Offerrer Video:', this.localStream.getVideoTracks());
+      this.mapPeers[peerUsername] = { peer: this.peer, stream: this.remoteStream, username: peerUsername };
       const offer = await this.peer.createOffer();
       await this.peer.setLocalDescription(offer);
       console.log('Local description was set to:', this.peer.localDescription);
@@ -234,8 +235,6 @@ export default {
         console.log('Connection opened!');
       });
       dc.addEventListener('message', this.dcOnMessage);
-
-      this.mapPeers[peerUsername] = { peer: this.peer, dataChannel: dc, stream: this.remoteStream, username: peerUsername };
 
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
