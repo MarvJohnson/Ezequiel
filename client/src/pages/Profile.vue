@@ -2,7 +2,7 @@
   <div>
     <Header />
     <div class="content-wrapper">
-      <aside>
+      <aside ref="aside" :class="creatingRoom ? 'scrolling-disabled' : ''">
         <section class="global-chat-container">
           <div class="global-chat-display">
             <p v-for="(message, index) in globalMessages" :key="index" class="global-chat-message"><span>{{ message.user }}</span>: {{ message.text }}</p>
@@ -12,9 +12,10 @@
           </form>
         </section>
         <section class="room-container">
+          <CreateRoomPopup v-if="creatingRoom" @exit="stopCreatingRoom" @create="createRoom" />
           <div class="r-c-input-container">
             <input type="text" placeholder="Search for room...">
-            <button>+</button>
+            <button @click="startCreatingRoom">+</button>
           </div>
           <div class="room-list">
             <div v-for="(room, rIndex) in rooms" :key="rIndex">
@@ -66,6 +67,7 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import ClientVideo from '../components/ClientVideo'
+import CreateRoomPopup from '../components/CreateRoomPopup'
 import { requestUser } from '../services/UserServices'
 
 export default {
@@ -79,6 +81,7 @@ export default {
     screenMediaStream: null,
     webSocket: null,
     peer: null,
+    creatingRoom: false,
     iceSettings: {
       iceServers: [
         {
@@ -110,12 +113,23 @@ export default {
   components: {
     Header,
     Footer,
-    ClientVideo
+    ClientVideo,
+    CreateRoomPopup
   },
   mounted(){
     this.requestUser();
   },
   methods: {
+    startCreatingRoom(){
+      this.creatingRoom = true;
+      this.$refs.aside.scrollTo(0, 0);
+    },
+    stopCreatingRoom(){
+      this.creatingRoom = false;
+    },
+    createRoom(roomName, isPublic, passcode){
+      console.log(roomName, isPublic, passcode);
+    },
     async requestUser(){
       const result = await requestUser();
 
@@ -490,6 +504,7 @@ export default {
   }
 
   .room-container {
+    position: relative;
     align-self: center;
   }
 
@@ -599,5 +614,9 @@ export default {
 
   .global-chat-message {
     animation: chat-message-popup .3s linear forwards;
+  }
+
+  .scrolling-disabled {
+    overflow: hidden;
   }
 </style>
