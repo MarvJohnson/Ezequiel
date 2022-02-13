@@ -98,7 +98,7 @@ export default {
       const result = await requestUser();
 
       if (result) {
-        this.$store.commit('setUser', { username: Math.random().toString() });
+        this.$store.commit('setUser', { username: result.username });
         // this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
@@ -221,11 +221,12 @@ export default {
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
 
-        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
-          console.log('Failed!');
+        if (iceConnectionState === 'failed' || iceConnectionState === 'closed') {
+          console.log('Connection for %s failed!', peerUsername);
           delete this.mapPeers[peerUsername]
 
           if(iceConnectionState !== 'closed') {
+            console.log('Closing connection for %s!', peerUsername);
             this.peer.close();
           }
         }
