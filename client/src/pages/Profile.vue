@@ -183,10 +183,18 @@ export default {
         const answer = parsedData['message']['sdp'];
         const peer = this.mapPeers[peerUsername].peer;
 
-        peer.setRemoteDescription(answer);
+        const rtcDesc = new RTCSessionDescription(answer);
+        peer.setRemoteDescription(rtcDesc);
         console.log('Received answer from:', peerUsername);
 
         return;
+      }
+
+      if (action === 'new-ice-candidate') {
+        console.log('Received ice candidate from:', peerUsername);
+        const candidate = new RTCIceCandidate(parsedData['message']['ice']);
+        console.log('Ice candidate:', candidate);
+        this.mapPeers[this.user.username].peer.addIceCandidate(candidate)
       }
 
       if (action === 'message') {
@@ -242,13 +250,17 @@ export default {
         }
       });
 
-      this.peer.addEventListener('icecandidate', (event) => {
+      this.peer.onicecandidate = (event) => {
         if (event.candidate) {
-          console.log('New ice candidate for:', peerUsername);
-          console.log('Ice candidate:', this.peer.localDescription);
-          return;
+          console.log('Ice candidate request from:', peerUsername);
+          console.log('Local Ice candidate:', event.candidate);
+
+          this.sendSignal('new-ice-candidate', {
+          'ice': event.candidate,
+          'receiver_channel_name': receiver_channel_name
+          });
         }
-      })
+      }
     },
     addLocalTracks(peer){
       this.localStream.getTracks().forEach(track => {
@@ -316,13 +328,18 @@ export default {
         }
       });
 
-      peer.addEventListener('icecandidate', (event) => {
+      peer.onicecandidate = (event) => {
         if (event.candidate) {
-          console.log('New ice candidate for:', peerUsername);
-          console.log('Ice candidate:', this.peer.localDescription);
+          console.log('Ice candidate request from:', peerUsername);
+          console.log('Local Ice candidate:', event.candidate);
+
+          this.sendSignal('new-ice-candidate', {
+          'ice': event.candidate,
+          'receiver_channel_name': receiver_channel_name
+        });
           return;
         }
-      });
+      };
     },
     toggleAudio(){
       console.log(this.audioTracks)

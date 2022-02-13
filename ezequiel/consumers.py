@@ -27,7 +27,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     message = receive_dict['message']
     action = receive_dict['action']
 
-    if (action == 'new-offer') or (action == 'new-answer'):
+    if (action == 'new-offer') or (action == 'new-answer') or (action == 'new-ice-candidate'):
       receiver_channel_name = receive_dict['message']['receiver_channel_name']
       receive_dict['message']['receiver_channel_name'] = self.channel_name
 
