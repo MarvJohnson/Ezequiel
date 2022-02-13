@@ -286,12 +286,12 @@ export default {
       console.log('Creating answerer for:', peerUsername);
       console.log('from offer:', offer);
       const peer = new RTCPeerConnection(null);
-      await peer.setRemoteDescription(offer);
-      console.log('Remote description set for:', peerUsername);
       this.addLocalTracks(peer);
       console.log('Added local tracks');
       this.setOnTrack(peer);
       this.mapPeers[peerUsername] = { peer, stream: this.remoteStream, username: peerUsername };
+      await peer.setRemoteDescription(offer);
+      console.log('Remote description set for:', peerUsername);
       const answer = await peer.createAnswer();
       console.log('Answer created successfully!');
       await peer.setLocalDescription(answer);
