@@ -242,7 +242,7 @@ export default {
       this.peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = this.peer.iceConnectionState;
 
-        if (iceConnectionState === 'failed' || iceConnectionState === 'closed') {
+        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
           console.log('Connection for %s failed!', peerUsername);
           this.$store.commit('deleteMapPeer');
 
@@ -324,7 +324,7 @@ export default {
       peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = peer.iceConnectionState;
 
-        if (iceConnectionState === 'failed' || iceConnectionState === 'closed') {
+        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
           this.$store.commit('deleteMapPeer', peerUsername);
 
           if (iceConnectionState === 'failed') {
