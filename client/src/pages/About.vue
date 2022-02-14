@@ -3,16 +3,14 @@
     <Header />
     <main>
       <img src="https://avatars.githubusercontent.com/u/51891409?v=4" alt="">
-      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum magnam harum delectus dolores minima voluptates pariatur, velit vero ex praesentium distinctio nemo libero quas enim dolor sed ad iste? Ullam.
-      Vitae, esse tenetur, labore reprehenderit voluptatem praesentium similique eum beatae qui nesciunt nisi nam soluta illum minima enim dolorum sint? Animi consectetur fuga in blanditiis ratione quidem voluptatum error. Quidem.
-      Culpa distinctio, voluptas magnam inventore corporis ab consequatur nisi beatae qui, soluta dicta laboriosam. Hic iure eveniet magni! Molestiae, fugiat. Ducimus cum rerum voluptate cumque quae, dolorum fugiat. Accusantium, ducimus.
-      Hic ad veritatis voluptate in? Cumque ducimus magni at quo blanditiis illum earum. Excepturi ad necessitatibus saepe, eos quos, pariatur at alias omnis incidunt id modi nesciunt earum animi officiis.
-      Alias tempora nemo eos explicabo corporis voluptas ad velit consequuntur delectus reiciendis amet, error atque itaque voluptates quos labore dolor illo iste esse blanditiis eius! Fugit omnis culpa consequuntur ducimus!
-      Harum nemo facere aspernatur rem ratione praesentium? Earum enim eum, odit voluptatem nisi velit beatae sed deserunt fugit optio aspernatur consequuntur quidem. Mollitia quod non ab perspiciatis deleniti dolores maiores?
-      Laborum aliquam minima autem non ab necessitatibus placeat dolore? Numquam ut est reprehenderit enim iusto facilis eligendi ullam harum? Accusantium facere sit quasi vero iusto rerum maiores, illum nulla ducimus.
-      Error labore, fugiat tempore quibusdam eos reiciendis totam alias. Aut maxime sapiente explicabo totam eos. Porro delectus aut maxime, odit repudiandae ex autem blanditiis esse molestias, nisi rerum illo hic.
-      Commodi, aut quam nulla reprehenderit excepturi quis deserunt ducimus quibusdam tempora illum at, provident inventore sequi ex officia molestias aperiam accusantium fugiat. Ipsa ducimus, qui voluptatem ipsam laboriosam excepturi a!
-      Alias nisi quidem possimus dolorem dolor modi harum repellat at reiciendis quis ea, libero rem aliquam accusamus ipsam accusantium recusandae ratione eius adipisci nesciunt sint amet numquam. Tempore, beatae unde?</p>
+      <p>My name is Marvel and I'm the creator of this site. This project was built as part of my capstone project for General Assembly, and it's purpose is to serve as an alternative to other well known video-conference and communications applications.
+        The goal is to provide a space for people to communicate ideas, that also promotes collaboration through media transmission over the internet.
+        You can keep up-to-date with the things I'm working on or how this site is developing by checking out my GitHub.
+      </p>
+      <p>
+        Feel free to shoot me a message if you or
+        someone you know is interested in working together!
+      </p>
     </main>
     <Footer />
   </div>
@@ -34,6 +32,7 @@ export default {
 <style scoped>
   main {
     padding: 5rem;
+    min-height: 80vh;
   }
 
   main p:first-of-type {

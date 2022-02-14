@@ -56,6 +56,7 @@ export default {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    object-fit: cover;
   }
 
   .client-video video.talking {
