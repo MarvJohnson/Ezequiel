@@ -140,6 +140,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     if action_type == 'join-room':
       room_name = action['payload']['room_name']
+      room_passcode = action['payload']['passcode']
+
+      
+
       print(f'Peer ({action["payload"]["sender"]}) joining {room_name}')
 
       await self.channel_layer.group_add(
@@ -178,6 +182,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     if action_type == 'leave-room':
       if self.channel_name in self.channelToRoom:
+        if self.channel_name in self.roomOwners:
+          del self.roomOwners[self.channel_name]
+
         action['sender_channel'] = self.channel_name        
         await self.channel_layer.group_send(
           self.channelToRoom[self.channel_name],
@@ -188,6 +195,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         
         del self.rooms[self.channelToRoom[self.channel_name]]['peers'][self.channel_name]
+        if len(self.rooms[self.channelToRoom[self.channel_name]]['peers']) == 0:
+          del self.rooms[self.channelToRoom[self.channel_name]]
         
         await self.channel_layer.group_send(
           self.room_group_name,
@@ -206,9 +215,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
           self.channelToRoom[self.channel_name],
           self.channel_name
         )
-
-        if len(self.rooms[self.channelToRoom[self.channel_name]]['peers']) == 0:
-          del self.rooms[self.channelToRoom[self.channel_name]]
         
         del self.channelToRoom[self.channel_name]
 

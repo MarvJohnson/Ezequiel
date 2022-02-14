@@ -34,7 +34,7 @@
             </div>
           </div>
         </section>
-        <section class="friends-container">
+        <!-- <section class="friends-container">
           <h3>Friends</h3>
           <hr />
           <div class="friends-list">
@@ -43,7 +43,7 @@
               <button class="join-room-btn">chat</button>
             </div>
           </div>
-        </section>
+        </section> -->
       </aside>
       <main>
         <div class="client-videos">
@@ -55,7 +55,6 @@
           <button>End call</button>
           <button @click="toggleAudio">Toggle audio</button>
           <button @click="toggleVideo">Toggle video</button>
-          <input type="text" v-model="room">
           <button @click="toggleScreenSharing">Screen Share</button>
         </div>
       </main>
@@ -107,6 +106,9 @@ export default {
       ]
     },
     room: '',
+    roomPasscode: '',
+    eventualRoom: null,
+    eventualCreateRoom: null,
     remoteAudioTracks: [],
     remoteVideoTracks: [],
     globalMessages: [],
@@ -133,6 +135,13 @@ export default {
     async createRoom(roomName, isPublic, passcode){
       await this.getLocalStream();
       
+      if (this.occupiedRoom) {
+        this.leaveRoom();
+        this.eventualCreateRoom = { roomName, isPublic, passcode }
+        return
+      }
+      this.eventualCreateRoom = null;
+      
       this.sendSignal('make-new-room', {
         room_name: roomName,
         is_public: isPublic,
@@ -141,6 +150,14 @@ export default {
     },
     async joinRoom(roomName){
       await this.getLocalStream();
+
+      if (this.occupiedRoom) {
+        this.leaveRoom();
+        this.eventualRoom = roomName;
+        return
+      }
+      this.eventualRoom = null;
+      
       this.webSocket.send(JSON.stringify({
         type: 'join-room',
         payload: {
@@ -230,6 +247,12 @@ export default {
             this.globalMessages.push({ user: '', text: `You left ${this.occupiedRoom.room_name}!` });
             this.$store.commit('deleteAllPeers');
             this.occupiedRoom = null;
+
+            if (this.eventualRoom) {
+              this.joinRoom(this.eventualRoom);
+            } else if(this.eventualCreateRoom) {
+              this.createRoom(this.eventualCreateRoom.roomName, this.eventualCreateRoom.isPublic, this.eventualCreateRoom.passcode);
+            }
           } else {
             this.globalMessages.push({ user: '', text: `${sender} left the room!` });
             this.$store.commit('deleteMapPeer', senderChannel);
@@ -422,13 +445,10 @@ export default {
       this.webSocket.send(jsonStr);
     },
     toggleAudio(){
-      console.log(this.audioTracks)
       this.audioTracks[0].enabled = !this.audioTracks[0].enabled;
-      // this.remoteAudioTracks?.[0]?.enabled = !this.remoteAudioTracks?.[0]?.enabled;
     },
     toggleVideo(){
       this.videoTracks[0].enabled = !this.videoTracks[0].enabled;
-      // this.remoteVideoTracks?.[0]?.enabled = !this.remoteVideoTracks?.[0]?.enabled;
     },
     sendGlobalMessage(){
       this.webSocket.send(JSON.stringify({
@@ -442,26 +462,7 @@ export default {
       this.message = '';
     },
     async toggleScreenSharing() {
-      // this.screenMediaStream = await navigator.mediaDevices.getDisplayMedia();
-      // console.log(this.screenMediaStream.getTracks());
-
-      // this.localStream.addTrack(this.screenMediaStream.getTracks()[0]);
-
-      // if (this.screenMediaStream ) {
-      //   this.$refs.screenSharingVideo.srcObject = this.screenMediaStream;
-        
-      //   for (let [, peer] of Object.entries(this.$store.state.mapPeers)) {
-      //     if (peer.username !== this.user.username) {
-      //       // this.localStream.getTracks().forEach(track => {
-      //       //   console.log('Adding track to %s\'s stream!', peer.username);
-      //       //   console.log(peer)
-      //       //   peer.peer.addTrack(track, this.localStream);
-      //       // });
-
-      //       peer.peer.addTrack(this.screenMediaStream.getTracks()[0], this.screenMediaStream)
-      //     }
-      //   }
-      // }
+      
     }
   },
   computed: {
@@ -540,7 +541,7 @@ export default {
 
   .room-container {
     position: relative;
-    align-self: center;
+    /* align-self: center; */
   }
 
   .room-display {

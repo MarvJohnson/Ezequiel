@@ -33,15 +33,13 @@ export default {
       // this.audioTrackingInterval = setInterval(() => {
       //   analyser.getByteFrequencyData(arr);
       //   const average = arr.reduce((b, e) => b + e) / arr.length / 128.0 * 10;
-      //   if (!!this.peer.muted === false && average > 4) {
+      //   console.log(average)
+      //   if (average > 4) {
       //       this.$refs.video.classList.add('talking');
       //   } else {
       //     this.$refs.video.classList.remove('talking');
       //   }
       // }, 100);
-      
-      // this.$refs.video.srcObject = this.peer.stream;
-      // this.$refs.video.muted = !!this.peer.muted;
     }
   }
 }
