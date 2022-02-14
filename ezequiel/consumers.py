@@ -22,7 +22,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         'action': {
           'type': 'get-all-rooms',
           'payload': {
-            'rooms': self.rooms
+            'rooms': [{ 'room_name': room['room_name'], 'peers': room['peers'], 'is_public': room['is_public'] } for room in self.rooms.values()]
           }
         }
       }
@@ -48,7 +48,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
           'action': {
             'type': 'get-all-rooms',
             'payload': {
-              'rooms': self.rooms
+              'rooms': [{ 'room_name': room['room_name'], 'peers': room['peers'], 'is_public': room['is_public'] } for room in self.rooms.values()]
             }
           }
         }
@@ -177,7 +177,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         'action': {
           'type': 'get-all-rooms',
           'payload': {
-            'rooms': self.rooms
+            'rooms': [{ 'room_name': room['room_name'], 'peers': room['peers'], 'is_public': room['is_public'] } for room in self.rooms.values()]
           }
         }
       }
@@ -209,7 +209,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'action': {
               'type': 'get-all-rooms',
               'payload': {
-                'rooms': self.rooms
+                'rooms': [{ 'room_name': room['room_name'], 'peers': room['peers'], 'is_public': room['is_public'] } for room in self.rooms.values()]
               }
             }
           }

@@ -205,20 +205,11 @@ export default {
       this.webSocket = this.$store.state.webSocket;
 
       this.webSocket.addEventListener('open', async () => {
-        // this.webSocket.send(JSON.stringify({
-        //   type: 'new-peer', 
-        //   payload: {
-        //     sender: this.user.username
-        //   }
-        // }));
-        // this.sendSignal('new-peer', {});
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
-        console.log('Connection closed!');
       });
       this.webSocket.addEventListener('error', () => {
-        console.log('Error occurred!');
       });
     },
     async webSocketOnMessage(event){
@@ -298,6 +289,7 @@ export default {
         }
 
         if (type === 'get-all-rooms') {
+          console.log(action.payload.rooms);
           this.rooms = Object.keys(action.payload.rooms).map(roomKey => {
             const room = action.payload.rooms[roomKey];
             return { 
@@ -662,8 +654,7 @@ export default {
 
   .communication-buttons {
     position: absolute;
-    width: 50%;
-    bottom: 1rem;
+    bottom: 4rem;
     left: 0;
     right: 0;
     margin: 0 auto;
@@ -696,6 +687,8 @@ export default {
     border: none;
     padding: 0.3rem;
     box-shadow: 0 0 4px 0 rgba(0, 0, 0, .4);
+    width: 150px;
+    height: 50px;
   }
 
   .is-enabled {
