@@ -51,8 +51,7 @@
         </div>
         <video id="screen-sharing-video" ref="screenSharingVideo" autoplay playsinline></video>
         <div class="communication-buttons">
-          <button @click="establishWebSocketConnection">Start call</button>
-          <button>End call</button>
+          <button v-if="occupiedRoom" @click="leaveRoom">Leave Room</button>
           <button @click="toggleAudio">Toggle audio</button>
           <button @click="toggleVideo">Toggle video</button>
           <button @click="toggleScreenSharing">Screen Share</button>
@@ -178,7 +177,7 @@ export default {
       const result = await requestUser();
 
       if (result) {
-        this.$store.commit('setUser', { username: this.user.username });
+        this.$store.commit('setUser', { username: Math.random() });
         this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
@@ -351,6 +350,13 @@ export default {
         
         peer.ontrack = (event) => {
           remoteStream.addTrack(event.track);
+          console.log('Got track!');
+          console.log('Length is now:', remoteStream.getVideoTracks().length);
+          if (remoteStream.getVideoTracks().length >= 2) {
+            console.log('Ran!')
+            const newStream = new MediaStream([remoteStream.getVideoTracks()[1]])
+            this.$refs.screenSharingVideo.srcObject = newStream;
+          }
         }
       }
       
@@ -461,7 +467,16 @@ export default {
       this.message = '';
     },
     async toggleScreenSharing() {
-      
+      const screenMediaStream = await navigator.mediaDevices.getDisplayMedia();
+      const videoTrack = screenMediaStream.getVideoTracks()[0];
+
+      for (let peerKey in this.$store.state.mapPeers) {
+        let peer = this.$store.state.mapPeers[peerKey].peer;
+
+        if (peer) {
+          peer.addTrack(videoTrack);
+        }
+      }
     }
   },
   computed: {
@@ -484,6 +499,7 @@ export default {
     height: 100vh;
     padding: 1rem 0;
     box-sizing: border-box;
+    background-color: var(--surface3);
   }
 
   aside {
@@ -517,7 +533,7 @@ export default {
     border: none;
     background-color: var(--surface4);
     outline: none;
-    box-shadow: inset 0 0 1px 0 hsl(var(--surface-shadow));
+    box-shadow: inset 0 0 4px 0 rgba(0, 0, 0, 0.2);
     width: 100%;
     height: 100%;
     box-sizing: border-box;
@@ -624,13 +640,20 @@ export default {
     overflow-y: auto;
   }
 
+  .client-video {
+    z-index: 1;
+  }
+
   #screen-sharing-video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    transform: scaleX(-1);
+    width: 80%;
+    height: 80%;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    object-fit: cover;
   }
 
   .communication-buttons {

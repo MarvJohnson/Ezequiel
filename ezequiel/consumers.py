@@ -140,7 +140,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     if action_type == 'join-room':
       room_name = action['payload']['room_name']
-      room_passcode = action['payload']['passcode']
+      passcode = ''
+      if 'passcode' in action['payload']:
+        passcode = action['payload']['passcode']
+
+      print(passcode)
 
       
 
