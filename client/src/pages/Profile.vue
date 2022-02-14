@@ -15,7 +15,7 @@
           <CreateRoomPopup v-if="creatingRoom" @exit="stopCreatingRoom" @create="createRoom" />
           <div class="r-c-input-container">
             <input type="text" placeholder="Search for room...">
-            <button @click="startCreatingRoom">+</button>
+            <button @click="startCreatingRoom">Create</button>
           </div>
           <div class="room-list">
             <div v-for="(room, rIndex) in rooms" :key="rIndex">
@@ -26,7 +26,6 @@
               </div>
               <div :class="`room-occupant ${room.expanded ? 'expanded' : ''}`">
                 <div v-for="(occupant, oIndex) in room.occupants" :key="oIndex" class="room-occupant-display">
-                  <button class="delete-room-btn">x</button>
                   <p>{{ occupant.username }}</p>
                   <button class="join-room-btn">chat</button>
                 </div>
@@ -51,10 +50,12 @@
         </div>
         <video id="screen-sharing-video" ref="screenSharingVideo" autoplay playsinline></video>
         <div class="communication-buttons">
-          <button v-if="occupiedRoom" @click="leaveRoom">Leave Room</button>
-          <button @click="toggleAudio">Toggle audio</button>
-          <button @click="toggleVideo">Toggle video</button>
-          <button @click="toggleScreenSharing">Screen Share</button>
+          <button v-if="occupiedRoom" @click="leaveRoom" class="config-btn">Leave Room</button>
+          <button @click="toggleAudio" v-if="audioTracks[0].enabled" class="config-btn is-enabled">Disable audio</button>
+          <button @click="toggleAudio" v-else class="config-btn is-disabled">Unmute audio</button>
+          <button @click="toggleVideo" v-if="audioTracks[0].enabled" class="config-btn is-enabled">Disable video</button>
+          <button @click="toggleVideo" v-else  class="config-btn is-disabled">Enable video</button>
+          <button @click="toggleScreenSharing" class="config-btn">Screen Share</button>
         </div>
       </main>
     </div>
@@ -552,6 +553,7 @@ export default {
 
   .r-c-input-container button {
     width: 3rem;
+    padding: 0;
   }
 
   .room-container {
@@ -686,5 +688,15 @@ export default {
 
   .scrolling-disabled {
     overflow: hidden;
+  }
+
+  .config-btn {
+    border: none;
+    padding: 0.3rem;
+    box-shadow: 0 0 4px 0 rgba(0, 0, 0, .4);
+  }
+
+  .is-enabled {
+    background-color: green;
   }
 </style>
