@@ -7,8 +7,8 @@
         <router-link to="/about" class="router-link">About</router-link>
       </div>
       <div class="footer-social-container">
-        <a href="https://github.com/MarvJohnson/Ezequiel" class="fa fa-brands fa-github social-a"></a>
-        <a href="https://www.linkedin.com/in/marvel-johnson/" class="fa fa-brands fa-linkedin social-a"></a>
+        <a href="https://github.com/MarvJohnson/Ezequiel" target="_blank" class="fa fa-brands fa-github social-a"></a>
+        <a href="https://www.linkedin.com/in/marvel-johnson/" target="_blank" class="fa fa-brands fa-linkedin social-a"></a>
       </div>
     </div>
   </footer>
