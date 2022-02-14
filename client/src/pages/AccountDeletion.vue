@@ -67,7 +67,6 @@ export default {
     height: 2rem;
     font-size: 1.2rem;
     font-weight: bold;
-    
     border: none;
   }
 

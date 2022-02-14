@@ -61,3 +61,11 @@ export const requestDeletion = async (password) => {
   });
   return result;
 };
+
+export const requestUpdateUsername = async (username) => {
+  const result = await Client.put('users/set_username', {
+    username
+  });
+
+  return result;
+};

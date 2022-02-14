@@ -178,7 +178,7 @@ export default {
       const result = await requestUser();
 
       if (result) {
-        this.$store.commit('setUser', { username: Math.random().toString() });
+        this.$store.commit('setUser', { username: this.user.username });
         this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
@@ -199,7 +199,6 @@ export default {
       }
 
       const endpoint = `${wsStart}${loc.host}${loc.pathname}`;
-      console.log(this.room);
       this.$store.commit('setWebSocket', new WebSocket(endpoint));
       this.webSocket = this.$store.state.webSocket;
 
