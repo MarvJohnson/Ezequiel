@@ -12,6 +12,7 @@
       <router-link to="" v-if="isLoggedIn()" custom>
         <a href="#" class="router-link nav-btn" @click="logout">Logout</a>
       </router-link>
+      <router-link to="/account_deletion" class="router-link nav-btn">Delete</router-link>
     </div>
   </nav>
 </template>
@@ -44,7 +45,7 @@ export default {
     flex-wrap: wrap;
     row-gap: 1rem;
     font-size: 1.5rem;
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
   }
 

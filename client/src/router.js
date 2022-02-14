@@ -4,6 +4,7 @@ import About from './pages/About';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import Profile from './pages/Profile';
+import AccountDeletion from './pages/AccountDeletion';
 import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
@@ -12,7 +13,12 @@ const routes = [
   { path: '/about', component: About, name: 'about' },
   { path: '/login', component: Login, name: 'login' },
   { path: '/signup', component: SignUp, name: 'signup' },
-  { path: '/profile', component: Profile, name: 'profile' }
+  { path: '/profile', component: Profile, name: 'profile' },
+  {
+    path: '/account_deletion',
+    component: AccountDeletion,
+    name: 'account_deletion'
+  }
 ];
 
 const router = createRouter({
