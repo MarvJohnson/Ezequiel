@@ -144,7 +144,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
       if 'passcode' in action['payload']:
         passcode = action['payload']['passcode']
 
-      print(passcode)
+      if passcode != self.rooms[room_name]['passcode']:
+        return
 
       
 
@@ -221,6 +222,38 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         
         del self.channelToRoom[self.channel_name]
+
+    if action_type == 'check-passcode':
+      room_name = action['payload']['room_name']
+      passcode = action['payload']['passcode']
+
+      if room_name in self.rooms and passcode == self.rooms[room_name]['passcode']:
+        await self.channel_layer.send(
+          self.channel_name,
+          {
+            'type': 'send.action',
+            'action': {
+              'type': 'check-passcode',
+              'payload': {
+                'is_correct': True
+              }
+            }
+          }
+        )
+        return
+      
+      await self.channel_layer.send(
+          self.channel_name,
+          {
+            'type': 'send.action',
+            'action': {
+              'type': 'check-passcode',
+              'payload': {
+                'is_correct': False
+              }
+            }
+          }
+        )
 
   async def send_action(self, event):
     action = event['action']

@@ -22,7 +22,7 @@
               <div :class="`room-display ${room.expanded ? 'expanded' : ''}`" @click="toggleRoomExpanded(rIndex)">
                 <p><span>➤</span> {{ room.room_name }}({{ room.occupants.length }}) {{ !room.isPublic ? '⛊' : '' }}</p>
                 <button class="join-room-btn" @click.stop="leaveRoom" v-if="room.room_name === occupiedRoom?.room_name">leave</button>
-                <button class="join-room-btn" @click.stop="joinRoom(room.room_name)" v-else>join</button>
+                <button class="join-room-btn" @click.stop="joinRoom(room.room_name, room.isPublic)" v-else>join</button>
               </div>
               <div :class="`room-occupant ${room.expanded ? 'expanded' : ''}`">
                 <div v-for="(occupant, oIndex) in room.occupants" :key="oIndex" class="room-occupant-display">
@@ -150,7 +150,26 @@ export default {
         passcode
       })
     },
-    async joinRoom(roomName){
+    async joinRoom(roomName, isPublic, passcode=''){
+      if (!isPublic && !this.eventualRoom) {
+        passcode = prompt('Enter the room\'s passcode here...');
+
+        if (!passcode) {
+          alert('You must enter the correct passcode to enter this room!');
+          return
+        }
+
+        this.eventualRoom = { roomName, passcode }
+        this.webSocket.send(JSON.stringify({
+        type: 'check-passcode',
+        payload: {
+          room_name: roomName,
+          passcode
+        }}));
+
+        return
+      }
+      
       await this.getLocalStream();
 
       if (this.occupiedRoom) {
@@ -164,7 +183,8 @@ export default {
         type: 'join-room',
         payload: {
           sender: this.user.username,
-          room_name: roomName
+          room_name: roomName,
+          passcode
         }
       }));
     },
@@ -251,6 +271,17 @@ export default {
           }
         }
 
+        if (type === 'check-passcode') {
+          const isCorrect = action.payload.is_correct;
+
+          if (isCorrect) {
+            this.joinRoom(this.eventualRoom.roomName, false, this.eventualRoom.passcode);
+          } else {
+            this.eventualRoom = null;
+            alert('Failed passcode verification!');
+          }
+        }
+
         if (sender === this.user.username) return
 
         if (type === 'new-peer') {
@@ -289,7 +320,6 @@ export default {
         }
 
         if (type === 'get-all-rooms') {
-          console.log(action.payload.rooms);
           this.rooms = Object.keys(action.payload.rooms).map(roomKey => {
             const room = action.payload.rooms[roomKey];
             return { 
