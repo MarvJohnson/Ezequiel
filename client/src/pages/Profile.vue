@@ -49,11 +49,11 @@
           <ClientVideo v-for="(peer, index) in this.$store.state.mapPeers" :key="index" :peer="peer" />
         </div>
         <video id="screen-sharing-video" ref="screenSharingVideo" autoplay playsinline></video>
-        <div class="communication-buttons">
-          <button v-if="occupiedRoom" @click="leaveRoom" class="config-btn">Leave Room</button>
-          <button @click="toggleAudio" v-if="audioTracks[0].enabled" class="config-btn is-enabled">Disable audio</button>
+        <div class="communication-buttons" v-if="occupiedRoom">
+          <button @click="leaveRoom" class="config-btn">Leave Room</button>
+          <button @click="toggleAudio" v-if="audioStatus" class="config-btn is-enabled">Disable audio</button>
           <button @click="toggleAudio" v-else class="config-btn is-disabled">Unmute audio</button>
-          <button @click="toggleVideo" v-if="audioTracks[0].enabled" class="config-btn is-enabled">Disable video</button>
+          <button @click="toggleVideo" v-if="videoStatus" class="config-btn is-enabled">Disable video</button>
           <button @click="toggleVideo" v-else  class="config-btn is-disabled">Enable video</button>
           <button @click="toggleScreenSharing" class="config-btn">Screen Share</button>
         </div>
@@ -79,6 +79,8 @@ export default {
     remoteStream: {},
     audioTracks: [],
     videoTracks: [],
+    videoStatus: true,
+    audioStatus: true,
     screenMediaStream: null,
     webSocket: null,
     peer: null,
@@ -351,10 +353,8 @@ export default {
         
         peer.ontrack = (event) => {
           remoteStream.addTrack(event.track);
-          console.log('Got track!');
-          console.log('Length is now:', remoteStream.getVideoTracks().length);
+
           if (remoteStream.getVideoTracks().length >= 2) {
-            console.log('Ran!')
             const newStream = new MediaStream([remoteStream.getVideoTracks()[1]])
             this.$refs.screenSharingVideo.srcObject = newStream;
           }
@@ -452,9 +452,11 @@ export default {
     },
     toggleAudio(){
       this.audioTracks[0].enabled = !this.audioTracks[0].enabled;
+      this.audioStatus = this.audioTracks[0].enabled;
     },
     toggleVideo(){
       this.videoTracks[0].enabled = !this.videoTracks[0].enabled;
+      this.videoStatus = this.videoTracks[0].enabled;
     },
     sendGlobalMessage(){
       this.webSocket.send(JSON.stringify({
@@ -698,5 +700,9 @@ export default {
 
   .is-enabled {
     background-color: green;
+  }
+
+  .is-disabled {
+    background-color: red;
   }
 </style>
