@@ -7,8 +7,8 @@
         <router-link to="/about" class="router-link">About</router-link>
       </div>
       <div class="footer-social-container">
-        <button>GitHub</button>
-        <button>LinkedIn</button>
+        <a href="https://github.com/MarvJohnson/Ezequiel" class="fa fa-brands fa-github social-a"></a>
+        <a href="https://www.linkedin.com/in/marvel-johnson/" class="fa fa-brands fa-linkedin social-a"></a>
       </div>
     </div>
   </footer>
@@ -46,11 +46,26 @@ export default {
   }
 
   .footer-social-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-items: center;
+    align-items: center;
     position: relative;
   }
 
   .footer-social-container button:last-child {
     position: absolute;
     right: 0;
+  }
+
+  a.social-a {
+    color: var(--text1);
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: transform 0.1s cubic-bezier(0.25, 0.25, 0.75, 2);
+  }
+
+  a.social-a:hover {
+    transform: scale(1.5);
   }
 </style>
