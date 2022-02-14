@@ -52,3 +52,12 @@ export const requestLogout = async () => {
 
   return result.data;
 };
+
+export const requestDeletion = async (password) => {
+  const result = await Client.delete('users/me/', {
+    data: {
+      current_password: password
+    }
+  });
+  return result;
+};
