@@ -60,12 +60,13 @@ export default {
 
   a.social-a {
     color: var(--text1);
-    font-size: 1.5rem;
+    font-size: 2rem;
     text-decoration: none;
-    transition: transform 0.1s cubic-bezier(0.25, 0.25, 0.75, 2);
+    transition: transform 0.1s cubic-bezier(0.25, 0.25, 0.75, 2), color 0.1s ease-in;
   }
 
   a.social-a:hover {
     transform: scale(1.5);
+    color: var(--text2);
   }
 </style>
