@@ -5,7 +5,7 @@
       <aside ref="aside" :class="creatingRoom ? 'scrolling-disabled' : ''">
         <section class="global-chat-container">
           <div class="global-chat-display">
-            <p v-for="(message, index) in globalMessages" :key="index" class="global-chat-message"><span>{{ message.user }}</span>: {{ message.text }}</p>
+            <p v-for="(message, index) in globalMessages" :key="index" class="global-chat-message"><span>{{ message.user }}</span>{{ message.text }}</p>
           </div>
           <form @submit.prevent="sendGlobalMessage()" class="global-input-form">
             <input type="text" placeholder="Send a message to everyone..." v-model="message">
@@ -20,13 +20,15 @@
           <div class="room-list">
             <div v-for="(room, rIndex) in rooms" :key="rIndex">
               <div :class="`room-display ${room.expanded ? 'expanded' : ''}`" @click="toggleRoomExpanded(rIndex)">
-                <p><span>➤</span> Room{{ rIndex + 1 }}({{ room.occupants }}) {{ room.private ? '⛊' : '' }}</p>
-                <button class="join-btn" @click.stop="">join</button>
+                <p><span>➤</span> {{ room.room_name }}({{ room.occupants.length }}) {{ !room.isPublic ? '⛊' : '' }}</p>
+                <button class="join-room-btn" @click.stop="leaveRoom" v-if="room.room_name === occupiedRoom?.room_name">leave</button>
+                <button class="join-room-btn" @click.stop="joinRoom(room.room_name)" v-else>join</button>
               </div>
               <div :class="`room-occupant ${room.expanded ? 'expanded' : ''}`">
                 <div v-for="(occupant, oIndex) in room.occupants" :key="oIndex" class="room-occupant-display">
-                  <p>Occupant#{{ oIndex }}</p>
-                  <button class="join-btn">chat</button>
+                  <button class="delete-room-btn">x</button>
+                  <p>{{ occupant.username }}</p>
+                  <button class="join-room-btn">chat</button>
                 </div>
               </div>
             </div>
@@ -38,7 +40,7 @@
           <div class="friends-list">
             <div v-for="(n, index) in 10" :key="index" class="friend-display">
               <p>Friend#{{ index }}</p>
-              <button class="join-btn">chat</button>
+              <button class="join-room-btn">chat</button>
             </div>
           </div>
         </section>
@@ -48,7 +50,6 @@
           <ClientVideo v-for="(peer, index) in this.$store.state.mapPeers" :key="index" :peer="peer" />
         </div>
         <video id="screen-sharing-video" ref="screenSharingVideo" autoplay playsinline></video>
-
         <div class="communication-buttons">
           <button @click="establishWebSocketConnection">Start call</button>
           <button>End call</button>
@@ -73,7 +74,8 @@ import { requestUser } from '../services/UserServices'
 export default {
   name: 'Profile',
   data: () => ({
-    rooms: [...Array(20)].map(() => ({ expanded: false, occupants: 1 + Math.floor(Math.random() * 9), private: Boolean(Math.round(Math.random())) })),
+    rooms: [],
+    occupiedRoom: null,
     localStream: {},
     remoteStream: {},
     audioTracks: [],
@@ -108,7 +110,8 @@ export default {
     remoteAudioTracks: [],
     remoteVideoTracks: [],
     globalMessages: [],
-    message: ''
+    message: '',
+    localPeer: null
   }),
   components: {
     Header,
@@ -127,15 +130,39 @@ export default {
     stopCreatingRoom(){
       this.creatingRoom = false;
     },
-    createRoom(roomName, isPublic, passcode){
-      console.log(roomName, isPublic, passcode);
+    async createRoom(roomName, isPublic, passcode){
+      await this.getLocalStream();
+      
+      this.sendSignal('make-new-room', {
+        room_name: roomName,
+        is_public: isPublic,
+        passcode
+      })
+    },
+    async joinRoom(roomName){
+      await this.getLocalStream();
+      this.webSocket.send(JSON.stringify({
+        type: 'join-room',
+        payload: {
+          sender: this.user.username,
+          room_name: roomName
+        }
+      }));
+    },
+    leaveRoom(){
+      this.webSocket.send(JSON.stringify({
+        type: 'leave-room',
+        payload: {
+          sender: this.user.username
+        }
+      }));
     },
     async requestUser(){
       const result = await requestUser();
 
       if (result) {
         this.$store.commit('setUser', { username: Math.random().toString() });
-        // this.establishWebSocketConnection()
+        this.establishWebSocketConnection()
       } else {
         this.$router.push('/login')
       }
@@ -160,21 +187,13 @@ export default {
       this.webSocket = this.$store.state.webSocket;
 
       this.webSocket.addEventListener('open', async () => {
-        console.log('Connection opened!');
-
-        const constraints = {
-          'video': true,
-          'audio': true
-        }
-
-        this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        this.audioTracks = this.localStream.getAudioTracks();
-        this.videoTracks = this.localStream.getVideoTracks();
-        
-        this.sendSignal('new-peer', {});
-
-        this.$store.commit('setMapPeers', { stream: this.localStream, username: this.user.username, muted: true });
+        // this.webSocket.send(JSON.stringify({
+        //   type: 'new-peer', 
+        //   payload: {
+        //     sender: this.user.username
+        //   }
+        // }));
+        // this.sendSignal('new-peer', {});
       });
       this.webSocket.addEventListener('message', this.webSocketOnMessage);
       this.webSocket.addEventListener('close', () => {
@@ -184,211 +203,223 @@ export default {
         console.log('Error occurred!');
       });
     },
-    webSocketOnMessage(event){
-      const parsedData = JSON.parse(event.data);
-      const peerUsername = parsedData['peer'];
-      const action = parsedData['action'];
+    async webSocketOnMessage(event){
+        const action = JSON.parse(event.data);
+        const type = action.type;
+        const senderChannel = action.sender_channel;
+        const sender = action.payload.sender;
 
-      if (this.user.username === peerUsername) {
-        return;
-      }
-
-      const receiver_channel_name = parsedData['message']['receiver_channel_name']
-
-      if (action === 'new-peer') {
-        console.log('New peer:', peerUsername);
-        console.log('Peer:', parsedData);
-        this.createOfferer(peerUsername, receiver_channel_name);
-        return;
-      }
-
-      if (action === 'new-offer') {
-        console.log('Received new offer from:', peerUsername);
-        const offer = parsedData['message']['sdp'];
-        this.createAnswerer(offer, peerUsername, receiver_channel_name);
-        
-        return;
-      }
-
-      if (action === 'new-answer') {
-        const answer = parsedData['message']['sdp'];
-        const peer = this.$store.state.mapPeers[peerUsername].peer;
-
-        const rtcDesc = new RTCSessionDescription(answer);
-        peer.setRemoteDescription(rtcDesc);
-        console.log('Received answer from:', peerUsername);
-
-        return;
-      }
-
-      if (action === 'new-ice-candidate') {
-        console.log('Received ice candidate from:', peerUsername);
-        const candidate = new RTCIceCandidate(parsedData['message']['ice']);
-        console.log('Ice candidate:', candidate);
-        this.$store.state.mapPeers[peerUsername].peer.addIceCandidate(candidate)
-      }
-
-      if (action === 'message') {
-        const message = parsedData['message']['message'];
-        this.globalMessages.push({ user: parsedData['peer'], text: message });
-      }
-    },
-    sendSignal(action, message){
-      const jsonStr = JSON.stringify({
-        'peer': this.user.username,
-        'action': action,
-        'message': message
-      });
-      
-      this.webSocket.send(jsonStr);
-    },
-    async createOfferer(peerUsername, receiver_channel_name){
-      console.log('Creating new offer for', peerUsername);
-      this.$store.commit('setPeer', new RTCPeerConnection(this.iceSettings));
-      this.peer = this.$store.state.peer;
-
-      const dc = this.peer.createDataChannel('channel');
-      dc.addEventListener('open', () => {
-        console.log('Connection opened!');
-      });
-      dc.addEventListener('message', this.dcOnMessage);
-
-      this.peer.addEventListener('iceconnectionstatechange', () => {
-        const iceConnectionState = this.peer.iceConnectionState;
-
-        if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
-          console.log('Connection for %s failed!', peerUsername);
-          this.$store.commit('deleteMapPeer');
-
-          if(iceConnectionState !== 'closed') {
-            console.log('Closing connection for %s!', peerUsername);
-            this.peer.close();
+        if (type === 'join-room') {
+          if (this.user.username !== sender) {
+            this.globalMessages.push({ user: '', text: action.payload.message });
+          } else {
+            this.globalMessages.push({ user: '', text: `You joined ${action.payload.room_name}!` });
+            this.occupiedRoom = action.payload.room;
+            this.webSocket.send(JSON.stringify({
+              type: 'new-peer',
+              payload: {
+                sender: this.user.username,
+                room_name: action.payload.room_name
+              }
+            }));
           }
         }
-      });
 
-      this.peer.onicecandidate = (event) => {
-        if (event.candidate) {
-          console.log('Ice candidate request from:', peerUsername);
-          console.log('Local Ice candidate:', event.candidate);
-
-          this.sendSignal('new-ice-candidate', {
-          'ice': event.candidate,
-          'receiver_channel_name': receiver_channel_name
-          });
+        if (type === 'leave-room') {
+          if (this.user.username === sender) {
+            this.globalMessages.push({ user: '', text: `You left ${this.occupiedRoom.room_name}!` });
+            this.$store.commit('deleteAllPeers');
+            this.occupiedRoom = null;
+          } else {
+            this.globalMessages.push({ user: '', text: `${sender} left the room!` });
+            this.$store.commit('deleteMapPeer', senderChannel);
+          }
         }
-      }
 
-      this.peer.onnegotiationneeded = async (e) => {
-        console.log('Negotiation needed for peer:', e.target);
-        const offer = await e.target.createOffer();
-        await e.target.setLocalDescription(offer);
-        console.log('Local description was set to:', e.target.localDescription);
-        this.sendSignal('new-offer', {
-        'sdp': e.target.localDescription,
-        'receiver_channel_name': receiver_channel_name
-        });
-        console.log('Sent offer to:', peerUsername);
-      }
+        if (sender === this.user.username) return
 
-      this.addLocalTracks(this.peer);      
-      console.log('Offerrer Audio:', this.localStream.getAudioTracks());
-      console.log('Offerrer Video:', this.localStream.getVideoTracks());
-      this.setOnTrack(this.peer);
-      this.$store.commit('setMapPeers', { peer: this.peer, stream: this.remoteStream, username: peerUsername });
-
-    },
-    addLocalTracks(peer){
-      this.localStream.getTracks().forEach(track => {
-        console.log('Adding local track:', track);
-        peer.addTrack(track)
-      })
-    },
-    dcOnMessage(event){
-      const message = event.data;
-      console.log('DataChannel Message:', message);
-    },
-    setOnTrack(peer){
-      this.remoteStream = new MediaStream();
-      this.remoteAudioTracks = this.remoteStream.getAudioTracks();
-      this.remoteVideoTracks = this.remoteStream.getVideoTracks();
-
-      peer.ontrack = async (event) => {
-        console.log('Track adding event:', event);
-        if(event.streams.length) {
-          console.log('Set screenSharingVideo to:', event.streams[0]);
-          this.$refs.screenSharingVideo.srcObject = event.streams[0];
-        } else {
-          console.log('Adding remote track:', event.track);
-          this.remoteStream.addTrack(event.track);
+        if (type === 'new-peer') {
+          this.createCallerPeer(senderChannel, sender);
+          return
         }
-          console.log(this.remoteStream.getVideoTracks());
-        console.log('Current mapPeers:', this.$store.state.mapPeers);
-      };
+
+        const sdp = new RTCSessionDescription(action.payload.sdp);
+
+        if (type === 'call') {
+          await this.createCalleePeer(senderChannel, sender, sdp, action);
+        }
+        
+        if (type === 'ice-candidate') {
+          const iceCandidate = new RTCIceCandidate(action.payload.sdp);
+          await this.$store.state.mapPeers[senderChannel].peer.addIceCandidate(iceCandidate);
+        }
+        
+        if (type === 'answer') {
+          await this.$store.state.mapPeers[senderChannel].peer.setRemoteDescription(sdp);
+        }
+
+        if (type === 'make-new-room') {
+          const newRoom = {
+            room_name: action.payload.room_name,
+            expanded: false,
+            occupants: action.payload.peers,
+            isPublic: action.payload.is_public
+          }
+
+          if (action.payload.peers[0].username === this.user.username) {
+            this.occupiedRoom = newRoom;
+          }
+
+          this.rooms.push(newRoom);
+        }
+
+        if (type === 'get-all-rooms') {
+          this.rooms = Object.keys(action.payload.rooms).map(roomKey => {
+            const room = action.payload.rooms[roomKey];
+            return { 
+              room_name: room.room_name,
+              expanded: false,
+              occupants: room.peers,
+              isPublic: room.is_public
+            }
+          })
+        }
+
+        if (type === 'message') {
+          const message = action.payload.message;
+          this.globalMessages.push({ user: sender, text: `: ${message}` });
+        }
     },
-    async createAnswerer(offer, peerUsername, receiver_channel_name) {
-      console.log('Creating answerer for:', peerUsername);
-      console.log('from offer:', offer);
-      const peer = new RTCPeerConnection(this.iceSettings);
+    async createCalleePeer(senderChannel, sender, sdp, action){
+      let peer = this.$store.state.mapPeers[senderChannel]?.peer;
+      if (!peer) {
+        peer = new RTCPeerConnection(this.iceSettings);
+
+        const remoteStream = new MediaStream();
+        this.$store.commit('setMapPeers', { peer, username: sender, senderChannel, stream: remoteStream });
       
-      peer.addEventListener('datachannel', e => {
-        peer.dc = e.channel;
-
-        peer.dc.addEventListener('open', () => {
-          console.log('Connection opened!');
+        this.localStream.getTracks().forEach(track => {
+          peer.addTrack(track);
         });
-        peer.dc.addEventListener('message', this.dcOnMessage);
+      
+        peer.onicecandidate = (event) => {
+          if (event.candidate) {  
+            this.webSocket.send(JSON.stringify({
+              type: 'ice-candidate',
+              sender_channel: senderChannel,
+              payload: {
+                sdp: event.candidate,
+                sender: this.user.username
+              }
+            }))
+          }
+        }
+        
+        peer.addEventListener('iceconnectionstatechange', () => {
+          const iceConnectionState = peer.iceConnectionState;
 
-        console.log('Remote DataChannel:', peerUsername);
-      });
+          if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
+            this.$store.commit('deleteMapPeer', senderChannel);
 
+            if(iceConnectionState !== 'closed') {
+              peer.close();
+            }
+          }
+        });
+        
+        peer.ontrack = (event) => {
+          remoteStream.addTrack(event.track);
+        }
+      }
+      
+      await peer.setRemoteDescription(sdp);
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+      action.type = 'answer';
+      action.payload.sdp = peer.localDescription;
+      action.payload.sender = this.user.username;
+      this.webSocket.send(JSON.stringify(action));
+    },
+    async createCallerPeer(senderChannel, sender) {
+      let peer = this.$store.state.mapPeers[senderChannel]?.peer;
+      if (peer) return;
+      
+      peer = new RTCPeerConnection(this.iceSettings);
+
+      const remoteStream = new MediaStream();
+      this.$store.commit('setMapPeers', { peer, username: sender, senderChannel, stream: remoteStream });
+      await this.getLocalStream();
+
+      peer.onnegotiationneeded = async () => {
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        this.webSocket.send(JSON.stringify({
+          type: 'call',
+          sender_channel: senderChannel,
+          payload: {
+            sdp: peer.localDescription,
+            sender: this.user.username
+          }
+        }));
+      }
+      
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          this.webSocket.send(JSON.stringify({
+            type: 'ice-candidate',
+            sender_channel: senderChannel,
+            payload: {
+              sdp: event.candidate,
+              sender: this.user.username
+            }
+          }))
+        }
+      }
 
       peer.addEventListener('iceconnectionstatechange', () => {
         const iceConnectionState = peer.iceConnectionState;
 
         if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
-          this.$store.commit('deleteMapPeer', peerUsername);
+          this.$store.commit('deleteMapPeer', senderChannel);
 
-          if (iceConnectionState === 'failed') {
-            console.log('Connection for %s failed!', peerUsername);
-          }
-          
           if(iceConnectionState !== 'closed') {
-            console.log('Closing connection for %s!', peerUsername);
             peer.close();
           }
         }
       });
 
-      peer.onicecandidate = (event) => {
-        if (event.candidate) {
-          console.log('Ice candidate request from:', peerUsername);
-          console.log('Local Ice candidate:', event.candidate);
-
-          this.sendSignal('new-ice-candidate', {
-          'ice': event.candidate,
-          'receiver_channel_name': receiver_channel_name
-        });
-          return;
+      peer.ontrack = (event) => {
+        remoteStream.addTrack(event.track);
+      }
+      
+      this.localStream.getTracks().forEach(track => {
+        peer.addTrack(track);
+      });
+    },
+    async getLocalStream(){
+      const constraints = {
+          'video': true,
+          'audio': true
         }
-      };
 
-      this.addLocalTracks(peer);
-      console.log('Added local tracks');
-      this.setOnTrack(peer);
-      this.$store.commit('setMapPeers', { peer, stream: this.remoteStream, username: peerUsername });
-      const remoteSDP = new RTCSessionDescription(offer);
-      await peer.setRemoteDescription(remoteSDP);
-      console.log('Remote description set for:', peerUsername);
-      const answer = await peer.createAnswer();
-      console.log('Answer created successfully!');
-      await peer.setLocalDescription(answer);
-      console.log('Local description set to:', peer.localDescription);
-      console.log('Sending answer to:', peerUsername);
-      this.sendSignal('new-answer', {
-          'sdp': peer.localDescription,
-          'receiver_channel_name': receiver_channel_name
-        });
+      this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      this.audioTracks = this.localStream.getAudioTracks();
+      this.videoTracks = this.localStream.getVideoTracks();
+      this.$store.commit('setMapPeers', { stream: this.localStream, username: this.user.username, senderChannel: this.user.username, muted: true });
+    },
+    sendSignal(type, action, current = {}){
+      const jsonStr = JSON.stringify({
+        ...current,
+        type,
+        payload: {
+          ...current.action,
+          ...action,
+          sender: this.user.username
+        }
+      });
+      
+      this.webSocket.send(jsonStr);
     },
     toggleAudio(){
       console.log(this.audioTracks)
@@ -400,10 +431,14 @@ export default {
       // this.remoteVideoTracks?.[0]?.enabled = !this.remoteVideoTracks?.[0]?.enabled;
     },
     sendGlobalMessage(){
-      this.sendSignal('message', {
-        'message': this.message
-      });
-      this.globalMessages.push({ user: this.user.username, text: this.message });
+      this.webSocket.send(JSON.stringify({
+        type: 'message',
+        payload: {
+          sender: this.user.username,
+          message: this.message
+        }
+      }));
+      this.globalMessages.push({ user: this.user.username, text: `: ${this.message}` });
       this.message = '';
     },
     async toggleScreenSharing() {
@@ -529,6 +564,7 @@ export default {
   }
 
   .room-occupant {
+    position: relative;
     padding: 0 1rem;
     transition: height 0.5s;
     height: 0;
@@ -561,11 +597,20 @@ export default {
     padding: 0 0.5rem;
   }
 
-  .join-btn {
+  .join-room-btn {
     background-color: var(--surface2);
     border: none;
     padding: 0.2rem 1rem;
     border-radius: 20px;
+  }
+
+  .delete-room-btn {
+    position: absolute;
+    top: 0;
+    left: 0.2rem;
+    border-radius: 50%;
+    background-color: red;
+    border: none;
   }
 
   .client-videos {

@@ -27,11 +27,20 @@ const store = createStore({
       state.webSocket = null;
     },
     setMapPeers(state, peerInfo) {
-      console.log('New object', { ...state.mapPeers, ...peerInfo });
-      state.mapPeers[peerInfo.username] = { ...state.mapPeers, ...peerInfo };
+      state.mapPeers[peerInfo.senderChannel] = {
+        ...state.mapPeers,
+        ...peerInfo
+      };
     },
-    deleteMapPeer(state, peerUsername) {
-      delete state.mapPeers[peerUsername];
+    deleteMapPeer(state, senderChannel) {
+      state.mapPeers[senderChannel].peer.close();
+      delete state.mapPeers[senderChannel];
+    },
+    deleteAllPeers(state) {
+      for (let peer in state.mapPeers) {
+        state.mapPeers[peer].peer?.close();
+        delete state.mapPeers[peer];
+      }
     }
   }
 });
