@@ -20,7 +20,7 @@
 ***
 
 ### ***Getting Started***
-##### Visit the home page [here](https://github.com/MarvJohnson/Ezequiel) and create an account!
+##### Visit the home page [here](https://ezequiel-web.herokuapp.com/) and create an account!
 ##### Development organization is managed with [Trello](https://trello.com/b/JyzQBSre/ezequiel), Diagrams for the [ERD](https://app.diagrams.net/?libs=general;er#LEzequiel%20ERD) and [CHD](https://app.diagrams.net/#LEzequiel%20CHD), as well as [Figma](https://www.figma.com/file/tFHXGxJwfOiKhEpyRQhxRX/Ezequiel?node-id=0%3A1) for UI mockups.
 ***
 
@@ -41,7 +41,10 @@
 
 ### ***Future Updates***
 - [ ] OAuth
-- [ ] Chat
+- [x] Chat
+- [x] Screen sharing
+- [x] Both public and private room creation
+- [ ] Invitation link
 ***
 
 ### ***Credits***
